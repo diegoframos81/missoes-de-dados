@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Missões de Dados: SQL, Python, Databricks, DAX e M</title>
+<meta name="description" content="Jogo para praticar SQL, Python, Databricks, DAX e M (Power Query) escrevendo código de verdade, do básico ao avançado.">
+<meta name="theme-color" content="#0f1420">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Missões de Dados">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#0f1420; --card:#182033; --card2:#212b44; --line:#2b3753;
+  --tx:#e9eefb; --mut:#93a0bd; --ok:#2fbf71; --bad:#ef5b5b; --acc:#7c8cff;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme: light){
+  :root{--bg:#f3f5fa;--card:#fff;--card2:#eef1f8;--line:#d7deeb;--tx:#16203a;--mut:#5d6a86;}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.45}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+#app{max-width:640px;margin:0 auto;padding:12px 14px 60px}
+h1{font-size:21px;margin:2px 0}
+h2{font-size:13px;margin:22px 2px 8px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+h3{margin:0 0 8px;font-size:17px}
+p{margin:6px 0}
+.mut{color:var(--mut)} .small{font-size:13px} .center{text-align:center}
+.row{display:flex;gap:10px;align-items:center} .grow{flex:1;min-width:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:10px}
+.card.note{border-left:4px solid var(--acc)}
+.card.bad{border-left:4px solid var(--bad)} .card.good{border-left:4px solid var(--ok)}
+.card.hint{border-left:4px solid #f2a93b;display:flex;flex-direction:column;gap:6px}
+.bar{height:8px;background:var(--card2);border-radius:99px;overflow:hidden;margin:12px 0 6px}
+.bar.thin{height:6px;margin:10px 0 8px}
+.bar>i{display:block;height:100%;background:var(--acc);border-radius:99px;transition:width .4s}
+.pill{font-size:13px;font-weight:700;padding:4px 10px;border-radius:99px;background:var(--card2);white-space:nowrap}
+.track{display:block;width:100%;text-align:left;font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--line);border-left:5px solid var(--c);border-radius:16px;padding:14px;margin-top:10px;cursor:pointer}
+.track b{font-size:18px}
+.count{font-weight:800;color:var(--c)}
+.top{position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0 10px}
+.x{border:0;background:var(--card2);color:var(--tx);min-width:40px;height:40px;border-radius:12px;font-size:18px;cursor:pointer}
+.list{padding:4px 6px}
+.mrow{display:flex;gap:12px;align-items:center;width:100%;background:none;border:0;border-top:1px solid var(--line);color:var(--tx);font:inherit;text-align:left;padding:12px 6px;cursor:pointer}
+.mrow:first-child{border-top:0}
+.mrow.locked{opacity:.45}
+.num{width:28px;height:28px;border-radius:50%;background:var(--card2);display:grid;place-items:center;font-size:13px;font-weight:700;flex:none}
+.mt{font-weight:600}
+.ico{font-size:18px}
+.lbl{font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;margin:10px 0 6px}
+.lbl:first-child{margin-top:0}
+.task{white-space:pre-line;font-size:16.5px}
+details>summary{cursor:pointer;font-weight:600;list-style:none}
+details>summary::-webkit-details-marker{display:none}
+details>summary::after{content:" ▾";color:var(--mut)}
+details[open]>summary::after{content:" ▴"}
+pre{margin:8px 0 0;background:#0b1020;color:#dbe4ff;border-radius:10px;padding:10px 12px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.5;white-space:pre}
+pre.ctx{white-space:pre-wrap}
+pre.errtx{color:#ffb3b3}
+.edcard{padding:10px}
+.editor{display:block;width:100%;min-height:150px;resize:vertical;background:#0b1020;color:#e8eeff;border:1px solid var(--line);border-radius:12px;padding:12px;font-family:var(--mono);font-size:16px;line-height:1.5;tab-size:4;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
+.editor:focus{outline:2px solid var(--acc);outline-offset:1px}
+.keys{display:flex;gap:6px;overflow-x:auto;padding:8px 0 2px;scrollbar-width:none}
+.keys::-webkit-scrollbar{display:none}
+.key{flex:none;border:1px solid var(--line);background:var(--card2);color:var(--tx);border-radius:9px;padding:8px 11px;font-family:var(--mono);font-size:14px;cursor:pointer;user-select:none;touch-action:manipulation}
+.key:active{background:var(--acc);color:#fff}
+.tools{justify-content:flex-end}
+.acts{display:flex;gap:10px;margin-top:10px}
+.acts .btn{flex:1}
+.help{margin-top:8px;flex-wrap:wrap}
+.help .btn{flex:1}
+.btn{border:0;border-radius:14px;padding:14px;font:inherit;font-weight:700;cursor:pointer;background:var(--acc);color:#fff}
+.btn.sec{background:var(--card2);color:var(--tx)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--tx);padding:11px 8px;font-weight:600;font-size:14.5px}
+.btn.small{padding:9px 12px;font-size:14px;margin-top:10px}
+.btn:disabled{opacity:.45}
+.card.good .btn{width:100%;margin-top:14px}
+.link{background:none;border:0;color:var(--mut);font:inherit;text-decoration:underline;cursor:pointer;padding:6px}
+.fx{margin:4px 0;font-weight:500}
+.tblw{overflow-x:auto;margin-top:6px}
+table{border-collapse:collapse;font-size:13px;font-family:var(--mono)}
+th,td{border:1px solid var(--line);padding:5px 8px;text-align:left;white-space:nowrap}
+th{background:var(--card2)}
+td.null{color:var(--mut);font-style:italic}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:30}
+.sheet{width:100%;max-width:640px;border-radius:20px 20px 0 0;margin:0;padding:20px 16px calc(20px + env(safe-area-inset-bottom))}
+.sheet .btn{width:100%}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#000c;color:#fff;padding:10px 16px;border-radius:99px;font-size:14px;z-index:40}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ======================= MISSÕES ======================= */
+const SQL_SETUP = `
+CREATE TABLE contratos(contrato TEXT, nome TEXT, fornecedor TEXT, valor_contrato REAL);
+INSERT INTO contratos VALUES
+('C-01','Montagem Elétrica','SPIE',5000000),
+('C-02','Instrumentação','SPIE',3000000),
+('C-03','Civil','Alfa',4000000),
+('C-04','Tubulação','Beta',6000000),
+('C-05','Pintura','Alfa',1000000),
+('C-06','Isolamento','Gama',800000);
+CREATE TABLE medicoes(id INTEGER, contrato TEXT, data TEXT, status TEXT, valor REAL);
+INSERT INTO medicoes VALUES
+(1,'C-01','2026-01-15','Aprovada',200000),
+(2,'C-01','2026-02-15','Aprovada',350000),
+(3,'C-01','2026-03-15','Aprovada',300000),
+(4,'C-02','2026-01-20','Aprovada',150000),
+(5,'C-02','2026-03-20','Pendente',NULL),
+(6,'C-03','2026-02-10','Aprovada',500000),
+(7,'C-03','2026-03-10','Aprovada',450000),
+(8,'C-04','2026-01-05','Aprovada',800000),
+(9,'C-04','2026-02-05','Aprovada',900000),
+(10,'C-04','2026-03-05','Aprovada',700000),
+(11,'C-05','2026-03-25','Pendente',120000),
+(12,'C-02','2026-02-20','Aprovada',180000);
+CREATE TABLE paineis(tag TEXT, tipo TEXT, area TEXT, status TEXT, data_montagem TEXT);
+INSERT INTO paineis VALUES
+('PN-001','SDDC','U-21','Montado','2026-02-10'),
+('PN-002','SDDC','U-21','Montado','2026-02-18'),
+('PN-003','CCM','U-22','Em montagem',NULL),
+('PN-004','SDDC','U-22','Montado','2026-03-02'),
+('PN-005','QDL','U-21','Pendente',NULL),
+('PN-006','CCM','U-23','Montado','2026-03-15'),
+('PN-007','SDDC','U-23','Em montagem',NULL),
+('PN-008','SDDC','U-23','Montado','2026-03-28');
+`;
+
+const TRACKS = [
+ {id:"sql", n:"SQL", c:"#4c8dff", d:"Consultas que rodam de verdade",
+  keys:["(",")",",",";","*","=","'","<",">",".","_","%","SELECT ","FROM ","WHERE ","GROUP BY ","ORDER BY ","JOIN ","ON ","AS ","SUM(","COUNT(","OVER ("],
+  ctx:"Banco de treino (SQLite) com 3 tabelas: contratos, medicoes e paineis. Toque em “Ver dados” para ver as linhas."},
+ {id:"py", n:"Python", c:"#a06cff", d:"Scripts que rodam de verdade",
+  keys:["    ","(",")","[","]","{","}",":","\"","'","=",",",".","_","#","def ","return ","for ","in ","if ","else:","print(","len(","f\""],
+  ctx:"O código roda num Python de verdade no seu celular. Os dados de cada missão já vêm no código inicial."},
+ {id:"dbx", n:"Databricks", c:"#ff5f46", d:"Spark SQL, Delta e PySpark",
+  keys:["(",")",".","\"","'",",","=","*",";","_","rnest.","bronze.","silver.","gold.","F.col(\"","F.sum(\"","spark.table(\"","SELECT ","FROM ","WHERE "],
+  ctx:"Catálogo rnest (Unity Catalog)\n  bronze : medicoes, contratos_novos\n  silver : medicoes, contratos, medicoes_aprovadas\n  gold   : resumo_contratos\nColunas de medicoes: contrato, data, status, valor\nColunas de contratos: contrato, nome, fornecedor, valor_contrato\n\nEm PySpark já existe: from pyspark.sql import functions as F"},
+ {id:"dax", n:"DAX", c:"#f2a93b", d:"Medidas e contexto de filtro",
+  keys:["(",")","[","]","\"",",","=","<=",">","*","-","/","&","CALCULATE(","SUM(","DIVIDE(","FILTER(","ALL(","VAR ","RETURN ","Medicoes[","Contratos[","Calendario["],
+  ctx:"Modelo do Power BI\n  Medicoes   : Contrato, Data, DataPagamento, Qtd, Preco, Valor\n  Contratos  : Contrato, Nome, Fornecedor, ValorContrato\n  Calendario : Data, Ano, Mes\nRelações\n  Contratos[Contrato] 1 → * Medicoes[Contrato]\n  Calendario[Data] 1 → * Medicoes[Data]  (ativa)\n  Calendario[Data] 1 → * Medicoes[DataPagamento]  (inativa)\nMedidas que já existem: [Total Medido], [Valor Contratado]"},
+ {id:"m", n:"M (Power Query)", c:"#22c1a6", d:"Transformações no Power Query",
+  keys:["    ","(",")","[","]","{","}","\"",",","=","=>","each ","Table.","Text.","List.","type ","Fonte","null"],
+  ctx:"Consultas que já existem no Power Query\n  Medicoes  : Contrato, Data, Qtd, Preco, Valor\n  Contratos : Contrato, Nome, Fornecedor\n  Paineis   : Tag, Tipo, Status\nTroque cada ___ pela sua fórmula."}
+];
+
+const L1=1,L2=2,L3=3;
+const MISSIONS = [
+/* =============================== SQL =============================== */
+{id:"s01",t:"sql",l:L1,ti:"Primeiro contato",
+ tx:"Seu coordenador quer ver a lista completa de contratos. Traga todas as colunas da tabela contratos.",
+ st:"-- escreva sua consulta aqui\n",
+ sol:"SELECT *\nFROM contratos;",
+ h:["Para trazer todas as colunas use o asterisco: *","Estrutura: SELECT * FROM nome_da_tabela;"],
+ e:"SELECT escolhe as colunas e FROM diz de qual tabela. O * quer dizer “todas as colunas”."},
+{id:"s02",t:"sql",l:L1,ti:"Só os da SPIE",
+ tx:"Liste o nome e o fornecedor dos contratos do fornecedor SPIE.",
+ st:"SELECT \nFROM contratos\n",
+ sol:"SELECT nome, fornecedor\nFROM contratos\nWHERE fornecedor = 'SPIE';",
+ h:["Para filtrar linhas use WHERE.","Texto vai entre aspas simples: WHERE fornecedor = 'SPIE'"],
+ e:"WHERE filtra as linhas antes de mostrar. Texto em SQL fica entre aspas simples."},
+{id:"s03",t:"sql",l:L1,ti:"Os maiores contratos",ord:true,
+ tx:"Mostre contrato e valor_contrato dos contratos acima de 3.000.000, do MAIOR para o menor.",
+ st:"",
+ sol:"SELECT contrato, valor_contrato\nFROM contratos\nWHERE valor_contrato > 3000000\nORDER BY valor_contrato DESC;",
+ h:["Número não leva aspas nem ponto de milhar: 3000000","Para ordenar do maior para o menor: ORDER BY coluna DESC"],
+ e:"ORDER BY ordena o resultado. DESC = decrescente. Sem DESC a ordem é crescente (ASC)."},
+{id:"s04",t:"sql",l:L1,ti:"Medições sem valor",
+ tx:"Algumas medições ainda não têm valor (está vazio). Liste o id e o contrato dessas medições.",
+ st:"",
+ sol:"SELECT id, contrato\nFROM medicoes\nWHERE valor IS NULL;",
+ h:["Valor vazio em SQL se chama NULL.","Cuidado: valor = NULL não funciona. Use IS NULL."],
+ e:"Nada é igual a NULL, nem o próprio NULL. Por isso existe IS NULL (e IS NOT NULL)."},
+{id:"s05",t:"sql",l:L1,ti:"Total por contrato",
+ tx:"Monte um resumo com o contrato e o total medido (soma de valor) de cada contrato.",
+ st:"",
+ sol:"SELECT contrato, SUM(valor) AS total\nFROM medicoes\nGROUP BY contrato;",
+ h:["Use SUM(valor) para somar.","Toda coluna que não está somada precisa ir no GROUP BY."],
+ e:"GROUP BY junta as linhas por contrato e SUM soma cada grupo. NULL é ignorado na soma."},
+{id:"s06",t:"sql",l:L1,ti:"Painéis SDDC por área",
+ tx:"Conte quantos painéis do tipo SDDC existem em cada área. Colunas: area e quantidade.",
+ st:"",
+ sol:"SELECT area, COUNT(*) AS qtd\nFROM paineis\nWHERE tipo = 'SDDC'\nGROUP BY area;",
+ h:["Primeiro filtre o tipo com WHERE, depois agrupe.","COUNT(*) conta as linhas de cada grupo."],
+ e:"Ordem: WHERE filtra primeiro, depois GROUP BY agrupa e COUNT conta."},
+{id:"s07",t:"sql",l:L2,ti:"Filtro depois do grupo",
+ tx:"Quais contratos já mediram mais de 800.000 no total? Mostre contrato e total.",
+ st:"",
+ sol:"SELECT contrato, SUM(valor) AS total\nFROM medicoes\nGROUP BY contrato\nHAVING SUM(valor) > 800000;",
+ h:["WHERE não enxerga o SUM. Para filtrar o total use outra palavra.","Use HAVING depois do GROUP BY."],
+ e:"WHERE filtra linhas antes de agrupar. HAVING filtra os grupos depois da soma."},
+{id:"s08",t:"sql",l:L2,ti:"Juntando tabelas",
+ tx:"O relatório precisa do NOME do contrato (que está em contratos) e do total medido (que está em medicoes).",
+ st:"SELECT \nFROM contratos c\nJOIN medicoes m ON \n",
+ sol:"SELECT c.nome, SUM(m.valor) AS total\nFROM contratos c\nJOIN medicoes m ON m.contrato = c.contrato\nGROUP BY c.nome;",
+ h:["Ligue as tabelas pela coluna em comum: contrato.","ON m.contrato = c.contrato — e agrupe por c.nome."],
+ e:"JOIN junta as linhas que têm o mesmo contrato nas duas tabelas. Os apelidos c e m deixam a consulta mais curta."},
+{id:"s09",t:"sql",l:L2,ti:"Quem ainda não mediu",
+ tx:"Liste contrato e nome dos contratos que NÃO têm nenhuma medição.",
+ st:"",
+ sol:"SELECT c.contrato, c.nome\nFROM contratos c\nLEFT JOIN medicoes m ON m.contrato = c.contrato\nWHERE m.contrato IS NULL;",
+ h:["Use LEFT JOIN para manter todos os contratos.","Quando não acha medição, as colunas de m ficam NULL. Filtre isso."],
+ e:"LEFT JOIN mantém todas as linhas da esquerda. Onde não há par, a direita vem NULL — e é isso que você filtra."},
+{id:"s10",t:"sql",l:L2,ti:"Avanço financeiro",tol:0.06,
+ tx:"Para cada contrato com medição, mostre contrato e o % medido = total medido ÷ valor do contrato × 100, com 1 casa decimal.",
+ st:"",
+ sol:"SELECT c.contrato,\n       ROUND(100.0 * SUM(m.valor) / c.valor_contrato, 1) AS pct\nFROM contratos c\nJOIN medicoes m ON m.contrato = c.contrato\nGROUP BY c.contrato, c.valor_contrato;",
+ h:["Junte contratos e medicoes e some m.valor.","ROUND(100.0 * SUM(m.valor) / c.valor_contrato, 1)"],
+ e:"Use 100.0 (com ponto) para garantir conta com decimais. ROUND(x, 1) arredonda para 1 casa."},
+{id:"s11",t:"sql",l:L2,ti:"Situação dos painéis",
+ tx:"Liste a tag de cada painel e uma coluna situacao: 'OK' quando o status for 'Montado', senão 'Falta'.",
+ st:"",
+ sol:"SELECT tag,\n       CASE WHEN status = 'Montado' THEN 'OK'\n            ELSE 'Falta'\n       END AS situacao\nFROM paineis;",
+ h:["Use CASE WHEN ... THEN ... ELSE ... END","CASE WHEN status = 'Montado' THEN 'OK' ELSE 'Falta' END AS situacao"],
+ e:"CASE é o “SE” do SQL. Sempre feche com END e dê um nome com AS."},
+{id:"s12",t:"sql",l:L2,ti:"Acima da média",
+ tx:"Liste id, contrato e valor das medições com valor ACIMA da média geral de valor.",
+ st:"",
+ sol:"SELECT id, contrato, valor\nFROM medicoes\nWHERE valor > (SELECT AVG(valor) FROM medicoes);",
+ h:["Você pode usar uma consulta dentro de outra (subconsulta).","WHERE valor > (SELECT AVG(valor) FROM medicoes)"],
+ e:"A subconsulta calcula a média uma vez e o WHERE compara cada linha com ela."},
+{id:"s13",t:"sql",l:L3,ti:"Última medição de cada contrato",
+ tx:"Para cada contrato, mostre contrato, data e valor da medição MAIS RECENTE.",
+ st:"WITH numerado AS (\n  SELECT contrato, data, valor,\n         ROW_NUMBER() OVER (  ) AS rn\n  FROM medicoes\n)\nSELECT \n",
+ sol:"WITH numerado AS (\n  SELECT contrato, data, valor,\n         ROW_NUMBER() OVER (PARTITION BY contrato ORDER BY data DESC) AS rn\n  FROM medicoes\n)\nSELECT contrato, data, valor\nFROM numerado\nWHERE rn = 1;",
+ h:["PARTITION BY contrato recomeça a contagem em cada contrato.","ORDER BY data DESC deixa a data mais nova com rn = 1."],
+ e:"ROW_NUMBER numera as linhas dentro de cada grupo. Filtrar rn = 1 pega a primeira de cada um. (No Databricks dá para usar QUALIFY.)"},
+{id:"s14",t:"sql",l:L3,ti:"Valor acumulado",ord:true,
+ tx:"Mostre contrato, data e o valor ACUMULADO de cada contrato ao longo das datas. Ordene por contrato e data.",
+ st:"",
+ sol:"SELECT contrato, data,\n       SUM(valor) OVER (PARTITION BY contrato ORDER BY data) AS acumulado\nFROM medicoes\nORDER BY contrato, data;",
+ h:["Use SUM(valor) OVER (...)","PARTITION BY contrato ORDER BY data — o ORDER BY dentro do OVER faz acumular."],
+ e:"Com ORDER BY dentro do OVER, a soma vai da primeira linha até a atual. É a base de uma curva S."},
+{id:"s15",t:"sql",l:L3,ti:"Mês contra mês",ord:true,
+ tx:"Monte: mes (formato AAAA-MM), total do mês e variacao = total do mês menos o total do mês anterior. Ordene por mês.\nNeste banco (SQLite) o mês sai com substr(data, 1, 7).",
+ st:"WITH t AS (\n  SELECT substr(data, 1, 7) AS mes, SUM(valor) AS total\n  FROM medicoes\n  GROUP BY substr(data, 1, 7)\n)\nSELECT \n",
+ sol:"WITH t AS (\n  SELECT substr(data, 1, 7) AS mes, SUM(valor) AS total\n  FROM medicoes\n  GROUP BY substr(data, 1, 7)\n)\nSELECT mes, total,\n       total - LAG(total) OVER (ORDER BY mes) AS variacao\nFROM t\nORDER BY mes;",
+ h:["LAG(coluna) pega o valor da linha anterior.","total - LAG(total) OVER (ORDER BY mes)"],
+ e:"LAG olha para trás e LEAD olha para frente. No primeiro mês não há anterior, então dá NULL."},
+{id:"s16",t:"sql",l:L3,ti:"Ranking de contratos",
+ tx:"Mostre contrato, total medido e posicao (1 = maior total), usando DENSE_RANK.",
+ st:"",
+ sol:"SELECT contrato,\n       SUM(valor) AS total,\n       DENSE_RANK() OVER (ORDER BY SUM(valor) DESC) AS posicao\nFROM medicoes\nGROUP BY contrato;",
+ h:["Dá para usar SUM(valor) dentro do OVER, junto com GROUP BY.","DENSE_RANK() OVER (ORDER BY SUM(valor) DESC)"],
+ e:"A função de janela roda depois do GROUP BY, por isso enxerga o SUM. DENSE_RANK não pula posição em empate."},
+
+/* =============================== PYTHON =============================== */
+{id:"p01",t:"py",l:L1,ti:"Variáveis e texto",
+ tx:"Crie a variável contrato com o texto \"C-01\" e a variável valor com o número 850000.\nDepois crie mensagem no formato:\nContrato C-01 mediu 850000",
+ st:"# crie as variáveis aqui\n",
+ sol:"contrato = \"C-01\"\nvalor = 850000\nmensagem = f\"Contrato {contrato} mediu {valor}\"\nprint(mensagem)",
+ test:`assert contrato == "C-01", "contrato deveria ser 'C-01'"
+assert valor == 850000, "valor deveria ser 850000 (número, sem aspas)"
+assert mensagem == "Contrato C-01 mediu 850000", f"mensagem está assim: '{mensagem}'"`,
+ h:["Texto vai entre aspas; número não.","Use f-string: f\"Contrato {contrato} mediu {valor}\""],
+ e:"f-string (f\"...\") coloca o valor das variáveis dentro do texto usando { }."},
+{id:"p02",t:"py",l:L1,ti:"Soma e média",
+ tx:"Com a lista de medições abaixo, crie total (soma de tudo) e media (média).",
+ st:"medicoes = [200000, 350000, 300000]\n\n",
+ sol:"medicoes = [200000, 350000, 300000]\ntotal = sum(medicoes)\nmedia = total / len(medicoes)\nprint(total, media)",
+ test:`assert total == 850000, f"total deu {total}"
+assert abs(media - 283333.333) < 0.01, f"media deu {media}"`,
+ h:["sum(lista) soma e len(lista) conta os itens.","media = total / len(medicoes)"],
+ e:"sum e len são funções prontas do Python. Dividir com / sempre dá número com decimais."},
+{id:"p03",t:"py",l:L1,ti:"Status do avanço",
+ tx:"Crie a função status(pct) que devolve:\n• \"Atrasado\" se pct < 50\n• \"No prazo\" se pct for de 50 até menos de 100\n• \"Concluído\" se pct >= 100",
+ st:"def status(pct):\n    \n",
+ sol:"def status(pct):\n    if pct < 50:\n        return \"Atrasado\"\n    elif pct < 100:\n        return \"No prazo\"\n    else:\n        return \"Concluído\"\n\nprint(status(30), status(70), status(100))",
+ test:`assert status(30) == "Atrasado", f"status(30) deu {status(30)!r}"
+assert status(50) == "No prazo", f"status(50) deu {status(50)!r}"
+assert status(99.9) == "No prazo", f"status(99.9) deu {status(99.9)!r}"
+assert status(100) == "Concluído", f"status(100) deu {status(100)!r}"`,
+ h:["Use if / elif / else. Não esqueça os dois-pontos e o recuo de 4 espaços.","Teste do menor para o maior: if pct < 50 ... elif pct < 100 ... else ..."],
+ e:"O Python testa as condições em ordem e para na primeira verdadeira. Por isso elif pct < 100 já sabe que pct é ≥ 50."},
+{id:"p04",t:"py",l:L1,ti:"Contando painéis",
+ tx:"Conte quantos painéis são do tipo \"SDDC\" E estão com status \"Montado\". Guarde em qtd.",
+ st:"paineis = [\n    {\"tag\": \"PN-001\", \"tipo\": \"SDDC\", \"status\": \"Montado\"},\n    {\"tag\": \"PN-002\", \"tipo\": \"SDDC\", \"status\": \"Montado\"},\n    {\"tag\": \"PN-003\", \"tipo\": \"CCM\",  \"status\": \"Em montagem\"},\n    {\"tag\": \"PN-004\", \"tipo\": \"SDDC\", \"status\": \"Montado\"},\n    {\"tag\": \"PN-005\", \"tipo\": \"QDL\",  \"status\": \"Pendente\"},\n    {\"tag\": \"PN-006\", \"tipo\": \"CCM\",  \"status\": \"Montado\"},\n    {\"tag\": \"PN-007\", \"tipo\": \"SDDC\", \"status\": \"Em montagem\"},\n    {\"tag\": \"PN-008\", \"tipo\": \"SDDC\", \"status\": \"Montado\"},\n]\n\nqtd = 0\n",
+ sol:"qtd = 0\nfor p in paineis:\n    if p[\"tipo\"] == \"SDDC\" and p[\"status\"] == \"Montado\":\n        qtd += 1\nprint(qtd)",
+ test:`assert qtd == 4, f"qtd deu {qtd}, mas são 4"`,
+ h:["Percorra a lista com for p in paineis:","Dentro do for: if p[\"tipo\"] == \"SDDC\" and p[\"status\"] == \"Montado\": qtd += 1"],
+ e:"Cada item é um dicionário. p[\"tipo\"] pega o valor da chave tipo. and exige as duas condições."},
+{id:"p05",t:"py",l:L1,ti:"Total por contrato",
+ tx:"Monte o dicionário totais com a soma de valor por contrato. Exemplo: {\"C-01\": 550000, ...}",
+ st:"medicoes = [\n    (\"C-01\", 200000),\n    (\"C-02\", 150000),\n    (\"C-01\", 350000),\n    (\"C-03\", 500000),\n    (\"C-02\", 180000),\n]\n\ntotais = {}\n",
+ sol:"totais = {}\nfor contrato, valor in medicoes:\n    totais[contrato] = totais.get(contrato, 0) + valor\nprint(totais)",
+ test:`assert totais == {"C-01": 550000, "C-02": 330000, "C-03": 500000}, f"totais deu {totais}"`,
+ h:["for contrato, valor in medicoes: separa cada par.","totais.get(contrato, 0) devolve 0 se o contrato ainda não existe."],
+ e:"Isso é um GROUP BY feito à mão. .get(chave, 0) evita erro na primeira vez que o contrato aparece."},
+{id:"p06",t:"py",l:L2,ti:"Lista numa linha só",
+ tx:"Usando list comprehension, crie montados: a lista das tags dos painéis com status \"Montado\", na mesma ordem.",
+ st:"paineis = [\n    (\"PN-001\", \"Montado\"), (\"PN-002\", \"Montado\"), (\"PN-003\", \"Em montagem\"),\n    (\"PN-004\", \"Montado\"), (\"PN-005\", \"Pendente\"), (\"PN-006\", \"Montado\"),\n    (\"PN-007\", \"Em montagem\"), (\"PN-008\", \"Montado\"),\n]\n\nmontados = \n",
+ sol:"montados = [tag for tag, status in paineis if status == \"Montado\"]\nprint(montados)",
+ test:`assert montados == ["PN-001","PN-002","PN-004","PN-006","PN-008"], f"montados deu {montados}"`,
+ h:["Formato: [o_que_guardar for item in lista if condição]","[tag for tag, status in paineis if status == \"Montado\"]"],
+ e:"List comprehension é um for + if numa linha. Lê-se: “a tag, para cada painel, se estiver montado”."},
+{id:"p07",t:"py",l:L2,ti:"Limpando tags",
+ tx:"As tags chegam bagunçadas. Crie limpar_tag(t) que:\n• tira espaços do começo e do fim\n• deixa tudo maiúsculo\n• troca espaço do meio por hífen\nEx.: \"  pn 001 \" → \"PN-001\"",
+ st:"def limpar_tag(t):\n    \n",
+ sol:"def limpar_tag(t):\n    return t.strip().upper().replace(\" \", \"-\")\n\nprint(limpar_tag(\"  pn 001 \"))",
+ test:`assert limpar_tag("  pn 001 ") == "PN-001", f"deu {limpar_tag('  pn 001 ')!r}"
+assert limpar_tag("PN-002") == "PN-002", "PN-002 deveria continuar igual"
+assert limpar_tag("sddc 10") == "SDDC-10", f"deu {limpar_tag('sddc 10')!r}"`,
+ h:["Métodos de texto: .strip(), .upper(), .replace(a, b)","Dá para encadear: t.strip().upper().replace(\" \", \"-\")"],
+ e:"Cada método devolve um texto novo, por isso dá para encadear um depois do outro."},
+{id:"p08",t:"py",l:L2,ti:"Dias de atraso",
+ tx:"Crie dias_atraso(prevista, real), com datas em texto \"AAAA-MM-DD\". Devolva quantos dias real passou da prevista. Se não atrasou, devolva 0.",
+ st:"from datetime import date\n\ndef dias_atraso(prevista, real):\n    \n",
+ sol:"from datetime import date\n\ndef dias_atraso(prevista, real):\n    p = date.fromisoformat(prevista)\n    r = date.fromisoformat(real)\n    return max((r - p).days, 0)\n\nprint(dias_atraso(\"2026-03-01\", \"2026-03-11\"))",
+ test:`assert dias_atraso("2026-03-01", "2026-03-11") == 10, f"deu {dias_atraso('2026-03-01','2026-03-11')}"
+assert dias_atraso("2026-03-10", "2026-03-05") == 0, "Adiantado deve dar 0"
+assert dias_atraso("2026-01-31", "2026-02-02") == 2, "Virada de mês deveria dar 2"`,
+ h:["date.fromisoformat(\"2026-03-01\") transforma texto em data.","(r - p).days dá a diferença em dias. Use max(..., 0)."],
+ e:"Subtrair duas datas dá um timedelta; .days pega os dias. max(x, 0) nunca deixa ficar negativo."},
+{id:"p09",t:"py",l:L2,ti:"Número no formato brasileiro",
+ tx:"A planilha traz valores como texto: \"1.234,56\". Crie para_float(txt) que devolve 1234.56. Se não der para converter (ex.: \"abc\" ou \"\"), devolva None.",
+ st:"def para_float(txt):\n    \n",
+ sol:"def para_float(txt):\n    try:\n        return float(txt.replace(\".\", \"\").replace(\",\", \".\"))\n    except ValueError:\n        return None\n\nprint(para_float(\"1.234,56\"))",
+ test:`assert para_float("1.234,56") == 1234.56, f"deu {para_float('1.234,56')}"
+assert para_float("10,5") == 10.5, f"deu {para_float('10,5')}"
+assert para_float("abc") is None, "abc deveria dar None"
+assert para_float("") is None, "texto vazio deveria dar None"`,
+ h:["Tire os pontos e troque a vírgula por ponto antes do float().","Use try: ... except ValueError: return None"],
+ e:"float() só entende ponto como decimal. try/except captura o erro e deixa você escolher o que devolver."},
+{id:"p10",t:"py",l:L2,ti:"Top 3 contratos",
+ tx:"Crie top3: lista com os códigos dos 3 contratos de maior total, do maior para o menor.",
+ st:"totais = {\"C-01\": 850000, \"C-02\": 330000, \"C-03\": 950000, \"C-04\": 2400000, \"C-05\": 120000}\n\ntop3 = \n",
+ sol:"top3 = sorted(totais, key=totais.get, reverse=True)[:3]\nprint(top3)",
+ test:`assert top3 == ["C-04", "C-03", "C-01"], f"top3 deu {top3}"`,
+ h:["sorted(..., key=..., reverse=True) ordena do maior para o menor.","sorted(totais, key=totais.get, reverse=True)[:3]"],
+ e:"key diz por qual valor ordenar. [:3] corta os 3 primeiros (fatiamento)."},
+{id:"p11",t:"py",l:L3,ti:"pandas: resumo por contrato",pkgs:["pandas"],
+ tx:"Com o DataFrame df, crie resumo com o total de valor por contrato.",
+ st:"import pandas as pd\n\ndf = pd.DataFrame({\n    \"contrato\": [\"C-01\",\"C-01\",\"C-01\",\"C-02\",\"C-02\",\"C-03\",\"C-04\",\"C-04\"],\n    \"valor\":    [200000, 350000, 300000, 150000, 180000, 500000, 800000, 1600000],\n})\n\nresumo = \n",
+ sol:"resumo = df.groupby(\"contrato\")[\"valor\"].sum()\nprint(resumo)",
+ test:`import pandas as pd
+r = resumo
+if isinstance(r, pd.DataFrame):
+    if "contrato" in r.columns: r = r.set_index("contrato")
+    r = r["valor"] if "valor" in r.columns else r.iloc[:, 0]
+assert abs(float(r["C-01"]) - 850000) < 0.01, f"C-01 deu {r['C-01']}"
+assert abs(float(r["C-04"]) - 2400000) < 0.01, f"C-04 deu {r['C-04']}"`,
+ h:["df.groupby(\"coluna\") agrupa.","df.groupby(\"contrato\")[\"valor\"].sum()"],
+ e:"groupby + sum é o GROUP BY do pandas. Escolher [\"valor\"] antes do sum deixa só a coluna que interessa."},
+{id:"p12",t:"py",l:L3,ti:"pandas: juntar e calcular %",pkgs:["pandas"],
+ tx:"Junte medicoes com contratos e crie o DataFrame avanco com as colunas contrato e pct (total medido ÷ valor_contrato × 100).",
+ st:"import pandas as pd\n\nmedicoes = pd.DataFrame({\n    \"contrato\": [\"C-01\",\"C-01\",\"C-02\",\"C-04\",\"C-04\"],\n    \"valor\":    [500000, 350000, 330000, 1200000, 1200000],\n})\ncontratos = pd.DataFrame({\n    \"contrato\": [\"C-01\",\"C-02\",\"C-04\"],\n    \"valor_contrato\": [5000000, 3000000, 6000000],\n})\n\n",
+ sol:"total = medicoes.groupby(\"contrato\", as_index=False)[\"valor\"].sum()\navanco = total.merge(contratos, on=\"contrato\")\navanco[\"pct\"] = avanco[\"valor\"] / avanco[\"valor_contrato\"] * 100\navanco = avanco[[\"contrato\", \"pct\"]]\nprint(avanco)",
+ test:`assert "pct" in avanco.columns, "avanco precisa ter a coluna pct"
+a = avanco.set_index("contrato") if "contrato" in avanco.columns else avanco
+assert abs(float(a.loc["C-01", "pct"]) - 17.0) < 0.01, f"C-01 deu {a.loc['C-01','pct']}"
+assert abs(float(a.loc["C-04", "pct"]) - 40.0) < 0.01, f"C-04 deu {a.loc['C-04','pct']}"`,
+ h:["Primeiro agrupe com as_index=False; depois use .merge(contratos, on=\"contrato\").","Crie a coluna: avanco[\"pct\"] = avanco[\"valor\"] / avanco[\"valor_contrato\"] * 100"],
+ e:"merge é o JOIN do pandas. as_index=False mantém contrato como coluna normal, pronta para juntar."},
+{id:"p13",t:"py",l:L3,ti:"pandas: despivotar a curva",pkgs:["pandas"],
+ tx:"A planilha tem uma coluna por mês. Transforme em formato longo: crie longo com as colunas Agrupamento, Mes e Valor.",
+ st:"import pandas as pd\n\nlargo = pd.DataFrame({\n    \"Agrupamento\": [\"Elétrica\", \"Civil\"],\n    \"2026-01\": [10, 5],\n    \"2026-02\": [20, 15],\n    \"2026-03\": [30, 25],\n})\n\nlongo = \n",
+ sol:"longo = largo.melt(id_vars=\"Agrupamento\", var_name=\"Mes\", value_name=\"Valor\")\nprint(longo)",
+ test:`assert len(longo) == 6, f"longo deveria ter 6 linhas, tem {len(longo)}"
+for c in ["Agrupamento", "Mes", "Valor"]:
+    assert c in longo.columns, f"Falta a coluna {c}"
+assert longo["Valor"].sum() == 105, "A soma de Valor deveria ser 105"`,
+ h:["A função é .melt()","largo.melt(id_vars=\"Agrupamento\", var_name=\"Mes\", value_name=\"Valor\")"],
+ e:"melt é o “Despivotar outras colunas” do Power Query: mantém id_vars e vira as outras colunas em linhas."},
+{id:"p14",t:"py",l:L3,ti:"Regex: números de contrato",
+ tx:"No texto abaixo, encontre todos os números de contrato SAP: 10 dígitos começando com 46. Guarde a lista em numeros.",
+ st:"import re\n\ntexto = \"Medições dos contratos 4600123456 e 4600654321 aprovadas; o 4600999 é inválido.\"\n\nnumeros = \n",
+ sol:"numeros = re.findall(r\"\\b46\\d{8}\\b\", texto)\nprint(numeros)",
+ test:`assert numeros == ["4600123456", "4600654321"], f"numeros deu {numeros}"`,
+ h:["re.findall(padrão, texto) devolve todas as ocorrências.","Padrão: r\"\\b46\\d{8}\\b\" (46 + 8 dígitos, com borda de palavra)"],
+ e:"\\d = dígito, {8} = 8 vezes, \\b = borda da palavra (evita pegar pedaço de um número maior)."},
+
+/* =============================== DATABRICKS =============================== */
+{id:"x01",t:"dbx",l:L1,ti:"Nome em 3 partes",
+ tx:"Leia todas as colunas da tabela medicoes que fica no catálogo rnest, schema bronze.",
+ st:"",
+ sol:"SELECT *\nFROM rnest.bronze.medicoes;",
+ r:[[/select\s+\*\s+from\s+rnest\.bronze\.medicoes\b/i,"Use o nome completo: catalogo.schema.tabela → rnest.bronze.medicoes"]],
+ h:["No Unity Catalog o nome tem 3 partes.","catalogo.schema.tabela"],
+ e:"Unity Catalog organiza tudo em catálogo → schema → tabela. Usar o nome completo evita ler a tabela errada."},
+{id:"x02",t:"dbx",l:L1,ti:"Total por mês",
+ tx:"Na tabela rnest.silver.medicoes, some o valor por mês. Colunas: mes (primeiro dia do mês) e total.",
+ st:"",
+ sol:"SELECT DATE_TRUNC('MONTH', data) AS mes,\n       SUM(valor) AS total\nFROM rnest.silver.medicoes\nGROUP BY DATE_TRUNC('MONTH', data);",
+ r:[[/date_trunc\s*\(\s*'(month|mm|mon)'\s*,\s*data\s*\)/i,"Use DATE_TRUNC('MONTH', data) para ir ao 1º dia do mês"],
+    [/sum\s*\(\s*valor\s*\)/i,"Some com SUM(valor)"],
+    [/from\s+rnest\.silver\.medicoes\b/i,"Leia de rnest.silver.medicoes"],
+    [/group\s+by\s+(all\b|mes\b|1\b|date_trunc)/i,"Falta o GROUP BY (pode ser GROUP BY ALL, mes ou a própria expressão)"]],
+ h:["DATE_TRUNC('MONTH', data) devolve o primeiro dia do mês.","No Databricks dá para usar GROUP BY ALL."],
+ e:"DATE_TRUNC corta a data no início do mês. MONTH(data) daria só o número 1 a 12, misturando anos."},
+{id:"x03",t:"dbx",l:L1,ti:"Criando a camada silver",
+ tx:"Crie (ou substitua) a tabela rnest.silver.medicoes_aprovadas só com as medições de status 'Aprovada', lendo de rnest.bronze.medicoes.",
+ st:"",
+ sol:"CREATE OR REPLACE TABLE rnest.silver.medicoes_aprovadas AS\nSELECT *\nFROM rnest.bronze.medicoes\nWHERE status = 'Aprovada';",
+ r:[[/create\s+(or\s+replace\s+)?table\s+(if\s+not\s+exists\s+)?rnest\.silver\.medicoes_aprovadas/i,"Comece com CREATE OR REPLACE TABLE rnest.silver.medicoes_aprovadas"],
+    [/\bas\s+select\b/i,"Use AS SELECT ... (isso se chama CTAS)"],
+    [/from\s+rnest\.bronze\.medicoes\b/i,"Leia de rnest.bronze.medicoes"],
+    [/where\s+status\s*=\s*'aprovada'/i,"Filtre WHERE status = 'Aprovada'"]],
+ h:["CTAS = CREATE TABLE ... AS SELECT ...","CREATE OR REPLACE TABLE nome AS SELECT * FROM ... WHERE ..."],
+ e:"No Databricks toda tabela criada assim já é Delta. OR REPLACE recria sem precisar apagar antes."},
+{id:"x04",t:"dbx",l:L1,ti:"Última medição com QUALIFY",
+ tx:"Da tabela rnest.silver.medicoes, traga só a medição mais recente de cada contrato, usando QUALIFY (sem subconsulta).",
+ st:"SELECT *\nFROM rnest.silver.medicoes\n",
+ sol:"SELECT *\nFROM rnest.silver.medicoes\nQUALIFY ROW_NUMBER() OVER (PARTITION BY contrato ORDER BY data DESC) = 1;",
+ r:[[/\bqualify\b/i,"Use a cláusula QUALIFY"],
+    [/row_number\s*\(\s*\)\s*over\s*\(/i,"Use ROW_NUMBER() OVER (...)"],
+    [/partition\s+by\s+contrato\b/i,"Numere por contrato: PARTITION BY contrato"],
+    [/order\s+by\s+data\s+desc\b/i,"A mais recente primeiro: ORDER BY data DESC"],
+    [/=\s*1\b/,"Fique só com a linha número 1: = 1"]],
+ h:["QUALIFY é o WHERE das funções de janela.","QUALIFY ROW_NUMBER() OVER (PARTITION BY contrato ORDER BY data DESC) = 1"],
+ e:"QUALIFY roda depois das funções de janela, então dispensa a CTE que você usou na trilha de SQL."},
+{id:"x05",t:"dbx",l:L2,ti:"Upsert com MERGE",
+ tx:"Atualize rnest.silver.contratos com os dados de rnest.bronze.contratos_novos (chave: contrato). Se o contrato já existe, atualiza tudo; se não existe, insere.",
+ st:"MERGE INTO rnest.silver.contratos AS t\nUSING rnest.bronze.contratos_novos AS s\n",
+ sol:"MERGE INTO rnest.silver.contratos AS t\nUSING rnest.bronze.contratos_novos AS s\nON t.contrato = s.contrato\nWHEN MATCHED THEN UPDATE SET *\nWHEN NOT MATCHED THEN INSERT *;",
+ r:[[/merge\s+into\s+rnest\.silver\.contratos\b/i,"Comece com MERGE INTO rnest.silver.contratos"],
+    [/using\s+rnest\.bronze\.contratos_novos\b/i,"A origem é USING rnest.bronze.contratos_novos"],
+    [/\bon\s+\w+\.contrato\s*=\s*\w+\.contrato\b/i,"Ligue pela chave: ON t.contrato = s.contrato"],
+    [/when\s+matched\s+then\s+update/i,"Falta: WHEN MATCHED THEN UPDATE SET *"],
+    [/when\s+not\s+matched\s+then\s+insert/i,"Falta: WHEN NOT MATCHED THEN INSERT *"]],
+ h:["MERGE junta UPDATE e INSERT num comando só.","ON t.contrato = s.contrato, depois WHEN MATCHED ... e WHEN NOT MATCHED ..."],
+ e:"MERGE é o “upsert” do Delta: atualiza o que existe e insere o que é novo, de forma segura numa transação."},
+{id:"x06",t:"dbx",l:L2,ti:"Viagem no tempo",
+ tx:"Alguém apagou dados de rnest.silver.medicoes ontem. Escreva 2 comandos: (1) veja o histórico de versões da tabela; (2) leia a tabela como estava na versão 3.",
+ st:"",
+ sol:"DESCRIBE HISTORY rnest.silver.medicoes;\n\nSELECT *\nFROM rnest.silver.medicoes VERSION AS OF 3;",
+ r:[[/describe\s+history\s+rnest\.silver\.medicoes\b/i,"Para ver o histórico: DESCRIBE HISTORY rnest.silver.medicoes"],
+    [/from\s+rnest\.silver\.medicoes\s*(version\s+as\s+of\s+3\b|@v3\b)/i,"Para ler uma versão antiga: FROM rnest.silver.medicoes VERSION AS OF 3"]],
+ h:["DESCRIBE HISTORY mostra cada versão da tabela Delta.","SELECT * FROM tabela VERSION AS OF 3"],
+ e:"Toda alteração numa tabela Delta gera uma versão. Dá para consultar versões antigas e até restaurar com RESTORE TABLE."},
+{id:"x07",t:"dbx",l:L2,ti:"PySpark: ler e filtrar",
+ tx:"Em PySpark: leia rnest.silver.medicoes para a variável df e crie grandes só com as linhas de valor maior que 100000.",
+ st:"from pyspark.sql import functions as F\n\ndf = \ngrandes = \ndisplay(grandes)",
+ sol:"from pyspark.sql import functions as F\n\ndf = spark.table(\"rnest.silver.medicoes\")\ngrandes = df.filter(F.col(\"valor\") > 100000)\ndisplay(grandes)",
+ r:[[/df\s*=\s*spark\.(table|read\.table)\(\s*["']rnest\.silver\.medicoes["']\s*\)/,"Leia com df = spark.table(\"rnest.silver.medicoes\")"],
+    [/grandes\s*=\s*df\.(filter|where)\(/,"Crie grandes = df.filter(...)"],
+    [/(filter|where)\(.*valor.*>\s*100000/,"A condição é valor > 100000 (ex.: F.col(\"valor\") > 100000)"]],
+ h:["spark.table(\"catalogo.schema.tabela\") lê a tabela.","df.filter(F.col(\"valor\") > 100000)"],
+ e:"No PySpark nada roda até uma ação (display, count, write). filter só monta o plano — isso se chama avaliação preguiçosa."},
+{id:"x08",t:"dbx",l:L2,ti:"PySpark: agrupar",
+ tx:"A partir de df, crie resumo com o total de valor por contrato. A coluna da soma deve se chamar total.",
+ st:"from pyspark.sql import functions as F\n\ndf = spark.table(\"rnest.silver.medicoes\")\nresumo = \n",
+ sol:"resumo = (df.groupBy(\"contrato\")\n            .agg(F.sum(\"valor\").alias(\"total\")))",
+ r:[[/resumo\s*=/,"Guarde o resultado em resumo"],
+    [/\.groupBy\(\s*(["']contrato["']|F\.col\(\s*["']contrato["']\s*\))\s*\)/,"Agrupe com .groupBy(\"contrato\")"],
+    [/F\.sum\(\s*(["']valor["']|F\.col\(\s*["']valor["']\s*\))\s*\)/,"Some com F.sum(\"valor\") dentro do .agg()"],
+    [/\.alias\(\s*["']total["']\s*\)/,"Dê o nome com .alias(\"total\")"]],
+ h:["df.groupBy(\"contrato\").agg(...)","F.sum(\"valor\").alias(\"total\")"],
+ e:".agg permite várias contas ao mesmo tempo, cada uma com seu .alias."},
+{id:"x09",t:"dbx",l:L2,ti:"PySpark: nova coluna",
+ tx:"Crie df2 a partir de df, com uma nova coluna ano tirada da coluna data.",
+ st:"from pyspark.sql import functions as F\n\ndf = spark.table(\"rnest.silver.medicoes\")\ndf2 = \n",
+ sol:"df2 = df.withColumn(\"ano\", F.year(\"data\"))",
+ r:[[/df2\s*=\s*df\.withColumn\(/,"Use df2 = df.withColumn(...)"],
+    [/withColumn\(\s*["']ano["']\s*,\s*F\.year\(\s*(["']data["']|F\.col\(\s*["']data["']\s*\))\s*\)/,"A coluna ano = F.year(\"data\")"]],
+ h:["withColumn(\"nome\", expressão) cria ou troca uma coluna.","df.withColumn(\"ano\", F.year(\"data\"))"],
+ e:"DataFrames são imutáveis: withColumn devolve um DataFrame novo, por isso guardamos em df2."},
+{id:"x10",t:"dbx",l:L3,ti:"Gravar na camada gold",
+ tx:"Grave resumo como tabela Delta rnest.gold.resumo_contratos, substituindo o que existir.",
+ st:"resumo.write",
+ sol:"(resumo.write\n   .mode(\"overwrite\")\n   .saveAsTable(\"rnest.gold.resumo_contratos\"))",
+ r:[[/resumo\s*\.\s*write/,"Comece com resumo.write"],
+    [/\.mode\(\s*["']overwrite["']\s*\)/,"Para substituir: .mode(\"overwrite\")"],
+    [/\.saveAsTable\(\s*["']rnest\.gold\.resumo_contratos["']\s*\)/,"Salve com .saveAsTable(\"rnest.gold.resumo_contratos\")"]],
+ h:["Modos: \"overwrite\" (substitui) ou \"append\" (acrescenta).","resumo.write.mode(\"overwrite\").saveAsTable(\"...\")"],
+ e:"saveAsTable registra a tabela no Unity Catalog. No Databricks o formato padrão já é Delta."},
+{id:"x11",t:"dbx",l:L3,ti:"Manutenção da tabela",
+ tx:"Os filtros por contrato em rnest.silver.medicoes estão lentos. (1) Compacte os arquivos organizando por contrato. (2) Limpe arquivos antigos que não são mais usados.",
+ st:"",
+ sol:"OPTIMIZE rnest.silver.medicoes ZORDER BY (contrato);\n\nVACUUM rnest.silver.medicoes;",
+ r:[[/optimize\s+rnest\.silver\.medicoes\b/i,"Compacte com OPTIMIZE rnest.silver.medicoes"],
+    [/zorder\s+by\s*\(?\s*contrato\b/i,"Organize por contrato: ZORDER BY (contrato)"],
+    [/vacuum\s+rnest\.silver\.medicoes\b/i,"Limpe com VACUUM rnest.silver.medicoes"]],
+ h:["OPTIMIZE junta arquivos pequenos; ZORDER BY organiza pela coluna do filtro.","VACUUM apaga arquivos antigos (padrão: mais de 7 dias)."],
+ e:"Muitos arquivos pequenos deixam a leitura lenta. Cuidado: depois do VACUUM, versões antigas além da retenção não dão mais para consultar."},
+{id:"x12",t:"dbx",l:L3,ti:"PySpark: Window",
+ tx:"Em PySpark, crie ultimas com só a medição mais recente de cada contrato, usando Window e row_number.",
+ st:"from pyspark.sql import functions as F\nfrom pyspark.sql.window import Window\n\ndf = spark.table(\"rnest.silver.medicoes\")\nw = \nultimas = \n",
+ sol:"w = Window.partitionBy(\"contrato\").orderBy(F.col(\"data\").desc())\nultimas = (df.withColumn(\"rn\", F.row_number().over(w))\n             .filter(F.col(\"rn\") == 1)\n             .drop(\"rn\"))",
+ r:[[/Window\.partitionBy\(\s*["']contrato["']\s*\)/,"Monte a janela: Window.partitionBy(\"contrato\")"],
+    [/\.orderBy\(\s*(F\.col\(\s*["']data["']\s*\)\.desc\(\)|F\.desc\(\s*["']data["']\s*\))/,"Ordene do mais novo: .orderBy(F.col(\"data\").desc())"],
+    [/F\.row_number\(\)\.over\(\s*w\s*\)/,"Numere com F.row_number().over(w)"],
+    [/ultimas\s*=/,"Guarde em ultimas"],
+    [/(filter|where)\(.*rn.*(==|=)\s*1/,"Filtre a linha 1: .filter(F.col(\"rn\") == 1)"]],
+ h:["Window.partitionBy(\"contrato\").orderBy(F.col(\"data\").desc())","df.withColumn(\"rn\", F.row_number().over(w)).filter(F.col(\"rn\") == 1)"],
+ e:"É a mesma ideia do ROW_NUMBER do SQL, escrita em Python. .drop(\"rn\") remove a coluna auxiliar no final."},
+{id:"x13",t:"dbx",l:L3,ti:"Ler CSV de um Volume",
+ tx:"Leia o arquivo /Volumes/rnest/bronze/arquivos/medicoes.csv direto no SQL, usando read_files, dizendo que é CSV e que tem cabeçalho.",
+ st:"SELECT *\nFROM ",
+ sol:"SELECT *\nFROM read_files(\n  '/Volumes/rnest/bronze/arquivos/medicoes.csv',\n  format => 'csv',\n  header => true\n);",
+ r:[[/read_files\s*\(\s*'\/Volumes\/rnest\/bronze\/arquivos\/medicoes\.csv'/i,"Use read_files('/Volumes/rnest/bronze/arquivos/medicoes.csv', ...)"],
+    [/format\s*=>\s*'csv'/i,"Informe o formato: format => 'csv'"],
+    [/header\s*=>\s*true/i,"Informe o cabeçalho: header => true"]],
+ h:["read_files(caminho, opção => valor, ...)","format => 'csv', header => true"],
+ e:"read_files lê arquivos (CSV, JSON, Parquet...) direto de um Volume. Opções usam a seta =>."},
+
+/* =============================== DAX =============================== */
+{id:"d01",t:"dax",l:L1,ti:"Primeira medida",
+ tx:"Crie a medida Total Medido que soma a coluna Valor da tabela Medicoes.",
+ st:"Total Medido = ",
+ sol:"Total Medido = SUM(Medicoes[Valor])",
+ r:[[/^\s*total medido\s*:?=/i,"Comece com o nome da medida: Total Medido ="],
+    [/sum\s*\(\s*'?medicoes'?\s*\[\s*valor\s*\]\s*\)/i,"Use SUM(Medicoes[Valor])"]],
+ h:["Coluna em DAX: Tabela[Coluna]","Total Medido = SUM(Medicoes[Valor])"],
+ e:"Medida sempre agrega (SUM, COUNT, MAX...). Ela é calculada para cada célula do visual, conforme os filtros."},
+{id:"d02",t:"dax",l:L1,ti:"Contar medições",
+ tx:"Crie a medida Qtd Medicoes que conta quantas linhas tem a tabela Medicoes.",
+ st:"Qtd Medicoes = ",
+ sol:"Qtd Medicoes = COUNTROWS(Medicoes)",
+ r:[[/^\s*qtd medi[cç](o|õ)es\s*:?=/i,"Comece com: Qtd Medicoes ="],
+    [/countrows\s*\(\s*'?medicoes'?\s*\)/i,"Para contar linhas use COUNTROWS(Medicoes)"]],
+ h:["Existe uma função que conta linhas de uma tabela.","COUNTROWS(Tabela)"],
+ e:"COUNTROWS conta linhas da tabela. COUNT(coluna) conta só os valores não vazios daquela coluna."},
+{id:"d03",t:"dax",l:L1,ti:"Divisão segura",
+ tx:"Crie % Medido = [Total Medido] dividido por [Valor Contratado], sem dar erro quando o contratado for zero.",
+ st:"% Medido = ",
+ sol:"% Medido = DIVIDE([Total Medido], [Valor Contratado])",
+ r:[[/^\s*% medido\s*:?=/i,"Comece com: % Medido ="],
+    [/divide\s*\(\s*\[total medido\]\s*,\s*\[valor contratado\]/i,"Use DIVIDE([Total Medido], [Valor Contratado])"]],
+ no:[[/\[total medido\]\s*\/\s*/i,"Evite o “/”: ele dá erro (infinito) na divisão por zero. Use DIVIDE."]],
+ h:["Há uma função que trata divisão por zero.","DIVIDE(numerador, denominador)"],
+ e:"DIVIDE devolve vazio quando o denominador é zero ou vazio. Medida se chama com colchetes: [Nome]."},
+{id:"d04",t:"dax",l:L1,ti:"Coluna com RELATED",
+ tx:"Crie uma COLUNA calculada na tabela Medicoes chamada Fornecedor, trazendo o fornecedor da tabela Contratos.",
+ st:"Fornecedor = ",
+ sol:"Fornecedor = RELATED(Contratos[Fornecedor])",
+ r:[[/^\s*fornecedor\s*=/i,"Comece com: Fornecedor ="],
+    [/related\s*\(\s*'?contratos'?\s*\[\s*fornecedor\s*\]\s*\)/i,"Use RELATED(Contratos[Fornecedor])"]],
+ h:["Medicoes é o lado “muitos” e Contratos é o lado “um”.","RELATED(Tabela[Coluna]) busca o valor pelo relacionamento."],
+ e:"RELATED funciona como um PROCV pelo relacionamento: vai do lado muitos para o lado um."},
+{id:"d05",t:"dax",l:L2,ti:"Filtrar com CALCULATE",
+ tx:"Crie Total SPIE: o [Total Medido] só dos contratos do fornecedor \"SPIE\".",
+ st:"Total SPIE = ",
+ sol:"Total SPIE =\nCALCULATE(\n    [Total Medido],\n    Contratos[Fornecedor] = \"SPIE\"\n)",
+ r:[[/^\s*total spie\s*:?=/i,"Comece com: Total SPIE ="],
+    [/calculate\s*\(\s*\[total medido\]\s*,/i,"Use CALCULATE([Total Medido], filtro)"],
+    [/'?contratos'?\s*\[\s*fornecedor\s*\]\s*=\s*"spie"/i,"O filtro é Contratos[Fornecedor] = \"SPIE\""]],
+ h:["CALCULATE(expressão, filtro1, filtro2...)","CALCULATE([Total Medido], Contratos[Fornecedor] = \"SPIE\")"],
+ e:"CALCULATE muda o contexto de filtro. Esse filtro substitui qualquer filtro de Fornecedor que já esteja no visual."},
+{id:"d06",t:"dax",l:L2,ti:"Linha a linha com SUMX",
+ tx:"Crie Valor Itens: some, linha a linha, Qtd × Preco da tabela Medicoes.",
+ st:"Valor Itens = ",
+ sol:"Valor Itens = SUMX(Medicoes, Medicoes[Qtd] * Medicoes[Preco])",
+ r:[[/sumx\s*\(\s*'?medicoes'?\s*,/i,"Use SUMX(Medicoes, ...)"],
+    [/'?medicoes'?\s*\[\s*qtd\s*\]\s*\*\s*'?medicoes'?\s*\[\s*preco\s*\]|'?medicoes'?\s*\[\s*preco\s*\]\s*\*\s*'?medicoes'?\s*\[\s*qtd\s*\]/i,"A conta de cada linha é Medicoes[Qtd] * Medicoes[Preco]"]],
+ no:[[/\bsum\s*\(\s*'?medicoes'?\s*\[\s*qtd\s*\]\s*\*/i,"SUM só aceita uma coluna. Para conta linha a linha use SUMX."]],
+ h:["SUM não aceita conta dentro. Use a versão com X.","SUMX(Tabela, conta por linha)"],
+ e:"SUMX é um iterador: percorre cada linha, faz a conta e soma no final."},
+{id:"d07",t:"dax",l:L2,ti:"% do total",
+ tx:"Crie % do Total: quanto cada contrato representa do total de TODOS os contratos.",
+ st:"% do Total = ",
+ sol:"% do Total =\nDIVIDE(\n    [Total Medido],\n    CALCULATE([Total Medido], ALL(Contratos))\n)",
+ r:[[/divide\s*\(\s*\[total medido\]\s*,/i,"Use DIVIDE([Total Medido], ...)"],
+    [/calculate\s*\(\s*\[total medido\]\s*,\s*(all|removefilters)\s*\(\s*'?contratos'?/i,"O denominador tira o filtro do contrato: CALCULATE([Total Medido], ALL(Contratos))"]],
+ h:["O denominador precisa ignorar o filtro do contrato.","CALCULATE([Total Medido], ALL(Contratos))"],
+ e:"ALL (ou REMOVEFILTERS) tira os filtros da tabela Contratos, então o denominador vira o total geral."},
+{id:"d08",t:"dax",l:L2,ti:"VAR e RETURN",
+ tx:"Crie Saldo a Medir = [Valor Contratado] − [Total Medido], guardando cada um numa variável (VAR).",
+ st:"Saldo a Medir =\nVAR Contratado = \nVAR Medido = \nRETURN\n",
+ sol:"Saldo a Medir =\nVAR Contratado = [Valor Contratado]\nVAR Medido = [Total Medido]\nRETURN\n    Contratado - Medido",
+ r:[[/\bvar\s+\w+\s*=\s*\[valor contratado\]/i,"Guarde o contratado: VAR Contratado = [Valor Contratado]"],
+    [/\bvar\s+\w+\s*=\s*\[total medido\]/i,"Guarde o medido: VAR Medido = [Total Medido]"],
+    [/\breturn\s+\w+\s*-\s*\w+/i,"Depois do RETURN faça a subtração: Contratado - Medido"]],
+ h:["VAR nome = valor","RETURN Contratado - Medido"],
+ e:"VAR deixa a fórmula legível e calcula cada parte uma vez só. RETURN diz o resultado."},
+{id:"d09",t:"dax",l:L2,ti:"Zero em vez de vazio",
+ tx:"Crie Total ou Zero: igual ao [Total Medido], mas mostrando 0 quando não houver valor.",
+ st:"Total ou Zero = ",
+ sol:"Total ou Zero = COALESCE([Total Medido], 0)",
+ r:[[/coalesce\s*\(\s*\[total medido\]\s*,\s*0\s*\)|\[total medido\]\s*\+\s*0\b|if\s*\(\s*isblank\s*\(\s*\[total medido\]\s*\)\s*,\s*0/i,"Use COALESCE([Total Medido], 0)"]],
+ h:["Existe uma função que pega o primeiro valor não vazio.","COALESCE([Total Medido], 0)"],
+ e:"COALESCE troca vazio por 0. Cuidado: com 0, o visual passa a mostrar TODAS as linhas, até as sem dado."},
+{id:"d10",t:"dax",l:L3,ti:"Acumulado no ano",
+ tx:"Crie Total YTD: o [Total Medido] acumulado do início do ano até a data do filtro.",
+ st:"Total YTD = ",
+ sol:"Total YTD = TOTALYTD([Total Medido], Calendario[Data])",
+ r:[[/totalytd\s*\(\s*\[total medido\]\s*,\s*'?calendario'?\s*\[\s*data\s*\]|calculate\s*\(\s*\[total medido\]\s*,\s*datesytd\s*\(\s*'?calendario'?\s*\[\s*data\s*\]\s*\)/i,"Use TOTALYTD([Total Medido], Calendario[Data])"]],
+ h:["YTD = Year To Date.","TOTALYTD(medida, Calendario[Data])"],
+ e:"Funções de tempo usam a tabela Calendario. Ela precisa ter todas as datas seguidas e estar marcada como tabela de datas."},
+{id:"d11",t:"dax",l:L3,ti:"Mesmo período do ano anterior",
+ tx:"Crie Total Ano Anterior: o [Total Medido] no mesmo período do ano passado.",
+ st:"Total Ano Anterior = ",
+ sol:"Total Ano Anterior =\nCALCULATE(\n    [Total Medido],\n    SAMEPERIODLASTYEAR(Calendario[Data])\n)",
+ r:[[/calculate\s*\(\s*\[total medido\]\s*,/i,"Use CALCULATE([Total Medido], ...)"],
+    [/sameperiodlastyear\s*\(\s*'?calendario'?\s*\[\s*data\s*\]\s*\)|dateadd\s*\(\s*'?calendario'?\s*\[\s*data\s*\]\s*,\s*-1\s*,\s*year\s*\)/i,"Troque as datas com SAMEPERIODLASTYEAR(Calendario[Data])"]],
+ h:["CALCULATE + uma função que desloca as datas 1 ano para trás.","SAMEPERIODLASTYEAR(Calendario[Data])"],
+ e:"SAMEPERIODLASTYEAR pega as datas do filtro atual e devolve as mesmas datas um ano antes."},
+{id:"d12",t:"dax",l:L3,ti:"Curva S acumulada",
+ tx:"Crie Acumulado: o [Total Medido] somado desde a primeira data até a última data visível no filtro (sem zerar no ano).",
+ st:"Acumulado =\nCALCULATE(\n    [Total Medido],\n    \n)",
+ sol:"Acumulado =\nCALCULATE(\n    [Total Medido],\n    FILTER(\n        ALL(Calendario[Data]),\n        Calendario[Data] <= MAX(Calendario[Data])\n    )\n)",
+ r:[[/calculate\s*\(\s*\[total medido\]\s*,/i,"Use CALCULATE([Total Medido], ...)"],
+    [/filter\s*\(\s*(all|allselected|removefilters)\s*\(\s*'?calendario'?/i,"Tire o filtro de data: FILTER(ALL(Calendario[Data]), ...)"],
+    [/'?calendario'?\s*\[\s*data\s*\]\s*<=/i,"Compare: Calendario[Data] <= ..."],
+    [/max\s*\(\s*'?calendario'?\s*\[\s*data\s*\]\s*\)/i,"A última data visível é MAX(Calendario[Data])"]],
+ h:["Você precisa de todas as datas até a última visível.","FILTER(ALL(Calendario[Data]), Calendario[Data] <= MAX(Calendario[Data]))"],
+ e:"ALL tira o filtro de data; FILTER devolve as datas até a última visível. MAX é avaliado fora do FILTER, no contexto do visual."},
+{id:"d13",t:"dax",l:L3,ti:"Ranking de contratos",
+ tx:"Crie Ranking: a posição de cada contrato pelo [Total Medido] (1 = maior).",
+ st:"Ranking = ",
+ sol:"Ranking = RANKX(ALL(Contratos[Contrato]), [Total Medido])",
+ r:[[/rankx\s*\(\s*(all|allselected)\s*\(\s*'?contratos'?/i,"Compare com todos: RANKX(ALL(Contratos[Contrato]), ...)"],
+    [/,\s*\[total medido\]/i,"Ranqueie pelo [Total Medido]"]],
+ h:["Sem ALL, cada linha só enxerga ela mesma e dá sempre 1.","RANKX(ALL(Contratos[Contrato]), [Total Medido])"],
+ e:"RANKX percorre a tabela do 1º argumento e compara a medida de cada um. ALL garante que todos entrem na comparação."},
+{id:"d14",t:"dax",l:L3,ti:"Relação inativa",
+ tx:"Crie Total por Pagamento: o [Total Medido] usando a relação INATIVA entre Medicoes[DataPagamento] e Calendario[Data].",
+ st:"Total por Pagamento = ",
+ sol:"Total por Pagamento =\nCALCULATE(\n    [Total Medido],\n    USERELATIONSHIP(Medicoes[DataPagamento], Calendario[Data])\n)",
+ r:[[/calculate\s*\(\s*\[total medido\]\s*,/i,"Use CALCULATE([Total Medido], ...)"],
+    [/userelationship\s*\(\s*('?medicoes'?\s*\[\s*datapagamento\s*\]\s*,\s*'?calendario'?\s*\[\s*data\s*\]|'?calendario'?\s*\[\s*data\s*\]\s*,\s*'?medicoes'?\s*\[\s*datapagamento\s*\])\s*\)/i,"Ative a relação: USERELATIONSHIP(Medicoes[DataPagamento], Calendario[Data])"]],
+ h:["Existe um modificador do CALCULATE que liga uma relação inativa.","USERELATIONSHIP(coluna1, coluna2)"],
+ e:"USERELATIONSHIP liga a relação inativa só dentro daquele CALCULATE. Assim você não precisa de 2 calendários."},
+{id:"d15",t:"dax",l:L3,ti:"Filtro sem substituir",
+ tx:"Crie SPIE no Filtro: igual ao Total SPIE, mas RESPEITANDO o filtro de fornecedor que já está no visual (se o visual estiver em outro fornecedor, deve ficar vazio).",
+ st:"SPIE no Filtro = ",
+ sol:"SPIE no Filtro =\nCALCULATE(\n    [Total Medido],\n    KEEPFILTERS(Contratos[Fornecedor] = \"SPIE\")\n)",
+ r:[[/calculate\s*\(\s*\[total medido\]\s*,/i,"Use CALCULATE([Total Medido], ...)"],
+    [/keepfilters\s*\(\s*'?contratos'?\s*\[\s*fornecedor\s*\]\s*=\s*"spie"\s*\)/i,"Envolva o filtro com KEEPFILTERS(Contratos[Fornecedor] = \"SPIE\")"]],
+ h:["Por padrão o filtro do CALCULATE substitui o do visual.","KEEPFILTERS(filtro) faz juntar em vez de substituir."],
+ e:"KEEPFILTERS faz a interseção: precisa ser SPIE E o fornecedor do visual. Se forem diferentes, não sobra nada."},
+
+/* =============================== M =============================== */
+{id:"q01",t:"m",l:L1,ti:"Filtrar linhas",
+ tx:"Mantenha só as medições com Valor maior que 0.",
+ st:"let\n    Fonte = Medicoes,\n    Filtrado = ___\nin\n    Filtrado",
+ sol:"let\n    Fonte = Medicoes,\n    Filtrado = Table.SelectRows(Fonte, each [Valor] > 0)\nin\n    Filtrado",
+ r:[[/Filtrado\s*=\s*Table\.SelectRows\(\s*Fonte\s*,/,"Use Table.SelectRows(Fonte, ...)"],
+    [/(each\s*\[Valor\]|\(\s*(\w+)\s*\)\s*=>\s*\2\s*\[Valor\])\s*>\s*0\s*\)/,"A condição é each [Valor] > 0"]],
+ h:["Table.SelectRows(tabela, condição)","each [Valor] > 0 — each quer dizer “para cada linha”."],
+ e:"each cria uma função que roda em cada linha. [Valor] é a coluna Valor da linha atual."},
+{id:"q02",t:"m",l:L1,ti:"Mudar tipos",
+ tx:"Mude o tipo da coluna Data para data e da coluna Valor para número.",
+ st:"let\n    Fonte = Medicoes,\n    Tipado = ___\nin\n    Tipado",
+ sol:"let\n    Fonte = Medicoes,\n    Tipado = Table.TransformColumnTypes(Fonte, {\n        {\"Data\", type date},\n        {\"Valor\", type number}\n    })\nin\n    Tipado",
+ r:[[/Table\.TransformColumnTypes\(\s*Fonte\s*,/,"Use Table.TransformColumnTypes(Fonte, {...})"],
+    [/\{\s*"Data"\s*,\s*type date\s*\}/,"Para Data: {\"Data\", type date}"],
+    [/\{\s*"Valor"\s*,\s*(type number|Currency\.Type|Decimal\.Type|Number\.Type)\s*\}/,"Para Valor: {\"Valor\", type number}"]],
+ h:["A lista de colunas é uma lista de pares: { {coluna, tipo}, {coluna, tipo} }","{{\"Data\", type date}, {\"Valor\", type number}}"],
+ e:"É o passo “Tipo Alterado”. As chaves duplas são uma lista de listas: cada par diz coluna e tipo."},
+{id:"q03",t:"m",l:L1,ti:"Coluna calculada",
+ tx:"Adicione a coluna \"Valor Total\" = Qtd × Preco, com tipo número.",
+ st:"let\n    Fonte = Medicoes,\n    ComTotal = ___\nin\n    ComTotal",
+ sol:"let\n    Fonte = Medicoes,\n    ComTotal = Table.AddColumn(Fonte, \"Valor Total\", each [Qtd] * [Preco], type number)\nin\n    ComTotal",
+ r:[[/Table\.AddColumn\(\s*Fonte\s*,\s*"Valor Total"\s*,/,"Use Table.AddColumn(Fonte, \"Valor Total\", ...)"],
+    [/each\s*(\[Qtd\]\s*\*\s*\[Preco\]|\[Preco\]\s*\*\s*\[Qtd\])/,"A conta é each [Qtd] * [Preco]"]],
+ h:["Table.AddColumn(tabela, \"nome\", each conta, tipo)","Table.AddColumn(Fonte, \"Valor Total\", each [Qtd] * [Preco], type number)"],
+ e:"O 4º argumento (type number) já define o tipo da coluna nova e evita um passo de tipo depois."},
+{id:"q04",t:"m",l:L1,ti:"Escolher colunas",
+ tx:"Fique só com as colunas Contrato, Data e Valor.",
+ st:"let\n    Fonte = Medicoes,\n    Colunas = ___\nin\n    Colunas",
+ sol:"let\n    Fonte = Medicoes,\n    Colunas = Table.SelectColumns(Fonte, {\"Contrato\", \"Data\", \"Valor\"})\nin\n    Colunas",
+ r:[[/Table\.SelectColumns\(\s*Fonte\s*,\s*\{/,"Use Table.SelectColumns(Fonte, {...})"],
+    [/\{[^}]*"Contrato"[^}]*\}/,"Inclua \"Contrato\" na lista"],
+    [/\{[^}]*"Data"[^}]*\}/,"Inclua \"Data\" na lista"],
+    [/\{[^}]*"Valor"[^}]*\}/,"Inclua \"Valor\" na lista"]],
+ h:["Lista em M usa chaves: {\"a\", \"b\"}","Table.SelectColumns(Fonte, {\"Contrato\", \"Data\", \"Valor\"})"],
+ e:"Escolher as colunas (em vez de remover as outras) é mais seguro: se a fonte ganhar colunas novas, o passo não quebra."},
+{id:"q05",t:"m",l:L1,ti:"Renomear colunas",
+ ctx:"A consulta Bruto tem as colunas: CTR, DT, VLR",
+ tx:"Renomeie CTR para Contrato e VLR para Valor.",
+ st:"let\n    Fonte = Bruto,\n    Renomeado = ___\nin\n    Renomeado",
+ sol:"let\n    Fonte = Bruto,\n    Renomeado = Table.RenameColumns(Fonte, {\n        {\"CTR\", \"Contrato\"},\n        {\"VLR\", \"Valor\"}\n    })\nin\n    Renomeado",
+ r:[[/Table\.RenameColumns\(\s*Fonte\s*,/,"Use Table.RenameColumns(Fonte, {...})"],
+    [/\{\s*"CTR"\s*,\s*"Contrato"\s*\}/,"Par para CTR: {\"CTR\", \"Contrato\"}"],
+    [/\{\s*"VLR"\s*,\s*"Valor"\s*\}/,"Par para VLR: {\"VLR\", \"Valor\"}"]],
+ h:["Cada troca é um par {\"antigo\", \"novo\"}.","Table.RenameColumns(Fonte, {{\"CTR\", \"Contrato\"}, {\"VLR\", \"Valor\"}})"],
+ e:"Igual aos tipos: uma lista de pares. Primeiro o nome antigo, depois o novo."},
+{id:"q06",t:"m",l:L2,ti:"Coluna condicional",
+ tx:"Na consulta Paineis, crie a coluna \"Situacao\": \"OK\" quando Status for \"Montado\", senão \"Falta\".",
+ st:"let\n    Fonte = Paineis,\n    ComSituacao = ___\nin\n    ComSituacao",
+ sol:"let\n    Fonte = Paineis,\n    ComSituacao = Table.AddColumn(Fonte, \"Situacao\",\n        each if [Status] = \"Montado\" then \"OK\" else \"Falta\", type text)\nin\n    ComSituacao",
+ r:[[/Table\.AddColumn\(\s*Fonte\s*,\s*"Situacao"\s*,/,"Use Table.AddColumn(Fonte, \"Situacao\", ...)"],
+    [/each\s+if\s+(\[Status\]\s*=\s*"Montado"\s+then\s+"OK"\s+else\s+"Falta"|\[Status\]\s*<>\s*"Montado"\s+then\s+"Falta"\s+else\s+"OK")/,"Use each if [Status] = \"Montado\" then \"OK\" else \"Falta\""]],
+ no:[[/\bIf\b|\bThen\b|\bElse\b/,"Em M, if / then / else são escritos em minúsculo."]],
+ h:["if ... then ... else ... (tudo minúsculo, e o else é obrigatório)","each if [Status] = \"Montado\" then \"OK\" else \"Falta\""],
+ e:"Em M o if sempre precisa de else. E comparação é com = (um só), não ==."},
+{id:"q07",t:"m",l:L2,ti:"Limpar texto",
+ tx:"A coluna Tag de Paineis vem com espaços sobrando e letras minúsculas. Tire os espaços das pontas e deixe maiúsculo, alterando a própria coluna.",
+ st:"let\n    Fonte = Paineis,\n    Limpo = ___\nin\n    Limpo",
+ sol:"let\n    Fonte = Paineis,\n    Limpo = Table.TransformColumns(Fonte, {\n        {\"Tag\", each Text.Upper(Text.Trim(_)), type text}\n    })\nin\n    Limpo",
+ r:[[/Table\.TransformColumns\(\s*Fonte\s*,/,"Para mudar uma coluna existente use Table.TransformColumns(Fonte, {...})"],
+    [/\{\s*"Tag"\s*,/,"Aplique na coluna \"Tag\""],
+    [/Text\.Trim\(/,"Use Text.Trim para tirar espaços"],
+    [/Text\.Upper\(/,"Use Text.Upper para maiúsculas"]],
+ h:["Table.TransformColumns(Fonte, {{\"Tag\", função}})","each Text.Upper(Text.Trim(_)) — o _ é o valor da célula."],
+ e:"Em TransformColumns o each recebe o valor da célula, que se chama _ (sublinhado)."},
+{id:"q08",t:"m",l:L2,ti:"Agrupar",
+ tx:"Agrupe por Contrato, criando a coluna \"Total\" com a soma de Valor.",
+ st:"let\n    Fonte = Medicoes,\n    Agrupado = ___\nin\n    Agrupado",
+ sol:"let\n    Fonte = Medicoes,\n    Agrupado = Table.Group(Fonte, {\"Contrato\"}, {\n        {\"Total\", each List.Sum([Valor]), type number}\n    })\nin\n    Agrupado",
+ r:[[/Table\.Group\(\s*Fonte\s*,\s*\{\s*"Contrato"\s*\}\s*,/,"Use Table.Group(Fonte, {\"Contrato\"}, ...)"],
+    [/"Total"\s*,\s*each\s+List\.Sum\(\s*\[Valor\]\s*\)/,"A agregação é {\"Total\", each List.Sum([Valor]), type number}"]],
+ h:["No Table.Group, [Valor] é a LISTA de valores do grupo.","{{\"Total\", each List.Sum([Valor]), type number}}"],
+ e:"Dentro do Table.Group, o each recebe a mini-tabela de cada grupo, então [Valor] vira uma lista — por isso List.Sum."},
+{id:"q09",t:"m",l:L2,ti:"Mesclar consultas",
+ tx:"Junte Medicoes com Contratos pela coluna Contrato (externa esquerda) e expanda só a coluna Fornecedor.",
+ st:"let\n    Mesclado = ___,\n    Expandido = ___\nin\n    Expandido",
+ sol:"let\n    Mesclado = Table.NestedJoin(\n        Medicoes, {\"Contrato\"},\n        Contratos, {\"Contrato\"},\n        \"Contratos\", JoinKind.LeftOuter),\n    Expandido = Table.ExpandTableColumn(Mesclado, \"Contratos\", {\"Fornecedor\"})\nin\n    Expandido",
+ r:[[/Table\.NestedJoin\(\s*Medicoes\s*,\s*\{\s*"Contrato"\s*\}\s*,\s*Contratos\s*,\s*\{\s*"Contrato"\s*\}\s*,/,"Use Table.NestedJoin(Medicoes, {\"Contrato\"}, Contratos, {\"Contrato\"}, ...)"],
+    [/JoinKind\.LeftOuter/,"O tipo é JoinKind.LeftOuter"],
+    [/Table\.ExpandTableColumn\(\s*Mesclado\s*,\s*"\w+"\s*,\s*\{\s*"Fornecedor"\s*\}/,"Expanda: Table.ExpandTableColumn(Mesclado, \"Contratos\", {\"Fornecedor\"})"]],
+ h:["NestedJoin cria uma coluna com tabelas; depois você expande.","Table.NestedJoin(Medicoes, {\"Contrato\"}, Contratos, {\"Contrato\"}, \"Contratos\", JoinKind.LeftOuter)"],
+ e:"É o “Mesclar Consultas”. A coluna nova guarda uma tabela por linha, e ExpandTableColumn escolhe o que trazer."},
+{id:"q10",t:"m",l:L2,ti:"Despivotar datas",
+ ctx:"A consulta Curva tem a coluna Agrupamento e uma coluna para cada data (01/01/2026, 02/01/2026, ...).",
+ tx:"Transforme as colunas de datas em linhas, com as colunas \"Data\" e \"Valor\", mantendo Agrupamento fixo.",
+ st:"let\n    Fonte = Curva,\n    Longo = ___\nin\n    Longo",
+ sol:"let\n    Fonte = Curva,\n    Longo = Table.UnpivotOtherColumns(Fonte, {\"Agrupamento\"}, \"Data\", \"Valor\")\nin\n    Longo",
+ r:[[/Table\.UnpivotOtherColumns\(\s*Fonte\s*,\s*\{\s*"Agrupamento"\s*\}\s*,\s*"Data"\s*,\s*"Valor"\s*\)/,"Use Table.UnpivotOtherColumns(Fonte, {\"Agrupamento\"}, \"Data\", \"Valor\")"]],
+ no:[[/Table\.Unpivot\(/,"Prefira UnpivotOtherColumns: com Table.Unpivot você teria que listar cada data, e datas novas ficariam de fora."]],
+ h:["“Despivotar outras colunas” mantém as que você disser e vira o resto em linhas.","Table.UnpivotOtherColumns(Fonte, {\"Agrupamento\"}, \"Data\", \"Valor\")"],
+ e:"Com UnpivotOtherColumns, quando aparecer uma data nova na planilha ela entra sozinha no próximo refresh."},
+{id:"q11",t:"m",l:L3,ti:"Divisão sem susto",
+ tx:"Crie a coluna \"Preco Unit\" = Valor ÷ Qtd. Quando Qtd for 0 ou null, o resultado deve ser null.",
+ st:"let\n    Fonte = Medicoes,\n    ComPreco = ___\nin\n    ComPreco",
+ sol:"let\n    Fonte = Medicoes,\n    ComPreco = Table.AddColumn(Fonte, \"Preco Unit\",\n        each if [Qtd] = null or [Qtd] = 0 then null else [Valor] / [Qtd],\n        type number)\nin\n    ComPreco",
+ r:[[/Table\.AddColumn\(\s*Fonte\s*,\s*"Preco Unit"\s*,/,"Use Table.AddColumn(Fonte, \"Preco Unit\", ...)"],
+    [/\[Qtd\]\s*=\s*0\b/,"Teste o zero: [Qtd] = 0"],
+    [/\[Qtd\]\s*=\s*null\b/,"Teste o vazio: [Qtd] = null"],
+    [/\[Valor\]\s*\/\s*\[Qtd\]/,"A conta é [Valor] / [Qtd]"],
+    [/then\s+null\b|else\s+null\b/,"Devolva null no caso de 0 ou vazio"]],
+ h:["Em M, 10 / 0 NÃO dá erro: dá infinito. Por isso try...otherwise não resolve.","each if [Qtd] = null or [Qtd] = 0 then null else [Valor] / [Qtd]"],
+ e:"Pegadinha do M: dividir por zero dá infinito (sem erro). Testar antes com if é o jeito certo."},
+{id:"q12",t:"m",l:L3,ti:"Função personalizada",
+ tx:"Crie a função fxLimparTag que recebe um texto, tira os espaços das pontas e deixa maiúsculo.",
+ st:"let\n    fxLimparTag = ___,\n    Teste = fxLimparTag(\"  pn-001 \")\nin\n    Teste",
+ sol:"let\n    fxLimparTag = (tag as text) as text =>\n        Text.Upper(Text.Trim(tag)),\n    Teste = fxLimparTag(\"  pn-001 \")\nin\n    Teste",
+ r:[[/fxLimparTag\s*=\s*\(\s*\w+(\s+as\s+(nullable\s+)?text)?\s*\)(\s+as\s+text)?\s*=>/,"Uma função em M é: (parametro) => resultado"],
+    [/Text\.Trim\(/,"Use Text.Trim"],
+    [/Text\.Upper\(/,"Use Text.Upper"]],
+ h:["Função: (x) => expressão","(tag as text) as text => Text.Upper(Text.Trim(tag))"],
+ e:"Funções podem ficar num passo ou numa consulta própria e ser usadas em Table.AddColumn ou TransformColumns."},
+{id:"q13",t:"m",l:L3,ti:"Empilhar meses",
+ ctx:"As consultas Jan, Fev e Mar têm as mesmas colunas.",
+ tx:"Empilhe (acrescente) Jan, Fev e Mar numa tabela só.",
+ st:"let\n    Todos = ___\nin\n    Todos",
+ sol:"let\n    Todos = Table.Combine({Jan, Fev, Mar})\nin\n    Todos",
+ r:[[/Table\.Combine\(\s*\{\s*Jan\s*,\s*Fev\s*,\s*Mar\s*\}\s*\)/,"Use Table.Combine({Jan, Fev, Mar})"]],
+ h:["Acrescentar = empilhar. A função recebe uma LISTA de tabelas.","Table.Combine({Jan, Fev, Mar})"],
+ e:"Table.Combine empilha pelas colunas de mesmo nome. Join (NestedJoin) junta lado a lado; Combine junta um embaixo do outro."},
+{id:"q14",t:"m",l:L3,ti:"Ler parâmetro de tabela",
+ ctx:"A consulta Parametros tem as colunas Nome e Valor. Uma das linhas é Nome = \"DataCorte\".",
+ tx:"Leia o Valor da linha DataCorte na consulta Parametros e use para manter só as medições com Data menor ou igual a ela.",
+ st:"let\n    Fonte = Medicoes,\n    DataCorte = ___,\n    Filtrado = ___\nin\n    Filtrado",
+ sol:"let\n    Fonte = Medicoes,\n    DataCorte = Parametros{[Nome = \"DataCorte\"]}[Valor],\n    Filtrado = Table.SelectRows(Fonte, each [Data] <= DataCorte)\nin\n    Filtrado",
+ r:[[/Parametros\s*\{\s*\[\s*Nome\s*=\s*"DataCorte"\s*\]\s*\}\s*\[\s*Valor\s*\]/,"Busque a linha: Parametros{[Nome = \"DataCorte\"]}[Valor]"],
+    [/Table\.SelectRows\(\s*Fonte\s*,\s*each\s*\[Data\]\s*<=\s*DataCorte\s*\)/,"Filtre: Table.SelectRows(Fonte, each [Data] <= DataCorte)"]],
+ h:["Tabela{[Coluna = valor]} acha a linha pelo conteúdo.","Parametros{[Nome = \"DataCorte\"]}[Valor]"],
+ e:"{ } acessa a linha (por posição ou por busca) e [ ] pega o campo. É um jeito simples de ter parâmetros numa planilha."}
+];
+
+/* ======================= ESTADO ======================= */
+const KEY = "missoes-dados-v1";
+const RANKS = ["Estagiário","Analista Jr","Analista Pleno","Analista Sênior","Especialista","Arquiteto de Dados","Lenda do Modelo"];
+const LVL = {1:"Básico",2:"Intermediário",3:"Avançado"};
+const BASE = {1:10,2:20,3:30};
+const byId = Object.fromEntries(MISSIONS.map(m => [m.id, m]));
+const trackOf = id => TRACKS.find(t => t.id === id);
+const missionsOf = t => MISSIONS.filter(m => m.t === t);
+
+function blank(){ return {v:1, ms:{}, dr:{}, last:null, streak:0, upd:0}; }
+function loadLocal(){ try{ const r = JSON.parse(localStorage.getItem(KEY)); if(r && r.ms) return Object.assign(blank(), r); }catch(e){} return blank(); }
+let S = loadLocal();
+const rankSt = s => s === "solved" ? 2 : s === "seen" ? 1 : 0;
+function xp(){ return Object.values(S.ms).reduce((a,m) => a + (m.pts||0), 0); }
+function level(){ return Math.floor(xp()/100) + 1; }
+function rank(){ return RANKS[Math.min(RANKS.length-1, Math.floor((level()-1)/3))]; }
+function dstr(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function today(){ return dstr(new Date()); }
+function yest(){ const d = new Date(); d.setDate(d.getDate()-1); return dstr(d); }
+function liveStreak(){ return (S.last === today() || S.last === yest()) ? S.streak : 0; }
+function touchDay(){ const t = today(); if(S.last === t) return; S.streak = (S.last === yest()) ? S.streak + 1 : 1; S.last = t; }
+
+function save(){ S.upd = Date.now(); try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} cloudSave(); }
+
+function merge(a, b){
+  const o = blank();
+  const ids = new Set([...Object.keys(a.ms||{}), ...Object.keys(b.ms||{})]);
+  ids.forEach(id => {
+    const x = (a.ms||{})[id], y = (b.ms||{})[id];
+    if(!x || !y){ o.ms[id] = x || y; return; }
+    const best = rankSt(x.st) >= rankSt(y.st) ? x : y;
+    o.ms[id] = Object.assign({}, best, {pts: Math.max(x.pts||0, y.pts||0)});
+  });
+  const dids = new Set([...Object.keys(a.dr||{}), ...Object.keys(b.dr||{})]);
+  dids.forEach(id => { const x = (a.dr||{})[id], y = (b.dr||{})[id];
+    o.dr[id] = (!x) ? y : (!y) ? x : ((x.at||0) >= (y.at||0) ? x : y); });
+  const la = a.last || "", lb = b.last || "";
+  if(la === lb){ o.last = la || null; o.streak = Math.max(a.streak||0, b.streak||0); }
+  else if(la > lb){ o.last = la; o.streak = a.streak||0; } else { o.last = lb; o.streak = b.streak||0; }
+  o.upd = Math.max(a.upd||0, b.upd||0);
+  return o;
+}
+
+/* ---------- nuvem (db por pessoa) ---------- */
+let cloud = {ref:null, state:"off", writing:false, again:false, timer:null};
+async function cloudInit(){
+  try{
+    if(!window.claude || !claude.use) return;
+    const [db, user] = await Promise.all([claude.use("db"), claude.use("user")]);
+    if(!db || !user) return;
+    const uid = await user.id();
+    if(!uid) return;
+    cloud.ref = db.collection("data/users/" + uid).doc("progresso");
+    cloud.state = "sync"; paintSync();
+    const snap = await Promise.race([cloud.ref.get(), new Promise((_, rej) => setTimeout(() => rej({code:"timeout"}), 10000))]);
+    if(snap.exists){
+      const remote = snap.data();
+      S = merge(S, remote);
+      try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+      rerender();
+    }
+    cloud.state = "ok"; paintSync();
+    cloudSave();
+  }catch(e){ cloud.state = cloud.ref ? "err" : "off"; paintSync(); }
+}
+function cloudSave(){
+  if(!cloud.ref || cloud.state === "err") return;
+  clearTimeout(cloud.timer);
+  cloud.timer = setTimeout(cloudWrite, 1500);
+}
+async function cloudWrite(){
+  if(cloud.writing){ cloud.again = true; return; }
+  cloud.writing = true;
+  try{ await cloud.ref.set(JSON.parse(JSON.stringify(S))); cloud.state = "ok"; }
+  catch(e){ cloud.state = (e && e.code === "invalid_argument") ? "err" : cloud.state; }
+  cloud.writing = false; paintSync();
+  if(cloud.again){ cloud.again = false; cloudWrite(); }
+}
+function syncLabel(){
+  return {off:"📱 Progresso salvo neste aparelho", sync:"☁️ Sincronizando…", ok:"☁️ Progresso sincronizado entre aparelhos", err:"📱 Sem nuvem agora — salvo neste aparelho"}[cloud.state];
+}
+function paintSync(){ const e = document.getElementById("sync"); if(e) e.textContent = syncLabel(); }
+
+/* ---------- IA ---------- */
+let sampleFn = null;
+async function aiInit(){
+  try{ if(!window.claude || !claude.use) return; sampleFn = await claude.use("sample"); if(sampleFn) rerender(); }catch(e){ sampleFn = null; }
+}
+
+/* ======================= MOTORES ======================= */
+/* ---- SQL (SQLite no navegador) ---- */
+let sqlP = null;
+function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = () => rej(new Error("load")); document.head.appendChild(s); }); }
+function getSQL(){
+  if(sqlP) return sqlP;
+  const base = "https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/";
+  sqlP = (async () => {
+    try{
+      await loadScript(base + "sql-wasm.js");
+      return await Promise.race([initSqlJs({locateFile: f => base + f}), new Promise((_, r) => setTimeout(() => r(new Error("t")), 15000))]);
+    }catch(e){
+      try{ delete window.initSqlJs; }catch(_){}
+      await loadScript(base + "sql-asm.js");
+      return await initSqlJs();
+    }
+  })();
+  sqlP.catch(() => { sqlP = null; });
+  return sqlP;
+}
+async function runSQL(code){
+  const SQL = await getSQL();
+  const db = new SQL.Database();
+  try{
+    db.exec(SQL_SETUP);
+    const res = db.exec(code);
+    if(!res.length) return {cols:[], rows:[]};
+    const last = res[res.length-1];
+    return {cols:last.columns, rows:last.values};
+  } finally { db.close(); }
+}
+function normCell(v, tol){
+  if(v === null || v === undefined) return null;
+  if(typeof v === "number") return v;
+  if(typeof v === "string"){ const t = v.trim(); return t; }
+  return String(v);
+}
+function cellEq(a, b, tol){
+  if(a === null || b === null) return a === b;
+  if(typeof a === "number" && typeof b === "number") return Math.abs(a - b) <= Math.max(tol, Math.abs(b) * 1e-9);
+  return String(a) === String(b);
+}
+function sortRows(rows){ return rows.map(r => r.map(c => normCell(c))).sort((x, y) => JSON.stringify(x) < JSON.stringify(y) ? -1 : 1); }
+function compareSQL(got, exp, m){
+  const tol = m.tol || 0.01;
+  if(got.cols.length !== exp.cols.length) return `Esperado ${exp.cols.length} coluna(s), sua consulta trouxe ${got.cols.length}.`;
+  if(got.rows.length !== exp.rows.length) return `Esperado ${exp.rows.length} linha(s), sua consulta trouxe ${got.rows.length}.`;
+  const A = m.ord ? got.rows.map(r => r.map(c => normCell(c))) : sortRows(got.rows);
+  const B = m.ord ? exp.rows.map(r => r.map(c => normCell(c))) : sortRows(exp.rows);
+  for(let i = 0; i < A.length; i++){
+    for(let j = 0; j < A[i].length; j++){
+      if(!cellEq(A[i][j], B[i][j], tol)){
+        if(m.ord && rowsEq(sortRows(got.rows), sortRows(exp.rows), tol))
+          return "Os dados estão certos, mas a ORDEM das linhas não. Confira o ORDER BY.";
+        return `Os valores não batem (veja a linha ${i+1}, coluna ${j+1}: veio ${fmt(A[i][j])}, esperado ${fmt(B[i][j])}).`;
+      }
+    }
+  }
+  return null;
+}
+function rowsEq(A, B, tol){ return A.length === B.length && A.every((r, i) => r.length === B[i].length && r.every((c, j) => cellEq(c, B[i][j], tol))); }
+function fmt(v){ return v === null ? "NULL" : (typeof v === "number" ? (Number.isInteger(v) ? String(v) : v.toFixed(2)) : `'${v}'`); }
+
+/* ---- Python (Pyodide) ---- */
+let pyP = null;
+const PYV = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/";
+function getPy(){
+  if(pyP) return pyP;
+  pyP = (async () => { await loadScript(PYV + "pyodide.js"); return await loadPyodide({indexURL: PYV}); })();
+  pyP.catch(() => { pyP = null; });
+  return pyP;
+}
+const PY_HARNESS = `
+import sys, io, json, traceback
+_ns = {"__name__": "__main__"}
+_buf = io.StringIO()
+_old = sys.stdout
+_res = {"ok": True, "err": None, "out": "", "pass": None, "msg": None}
+sys.stdout = _buf
+try:
+    exec(compile(USER_CODE, "seu_codigo", "exec"), _ns)
+except Exception as _e:
+    _res["ok"] = False
+    _tb = traceback.extract_tb(_e.__traceback__)
+    _ln = [f.lineno for f in _tb if f.filename == "seu_codigo"]
+    _line = getattr(_e, "lineno", None) if isinstance(_e, SyntaxError) else (_ln[-1] if _ln else None)
+    _res["err"] = (f"Linha {_line}: " if _line else "") + "".join(traceback.format_exception_only(type(_e), _e)).strip()
+finally:
+    sys.stdout = _old
+_res["out"] = _buf.getvalue()
+if _res["ok"] and RUN_TESTS:
+    _ns["SAIDA"] = _res["out"]
+    try:
+        exec(TEST_CODE, _ns)
+        _res["pass"] = True
+    except AssertionError as _e:
+        _res["pass"] = False
+        _res["msg"] = str(_e) or "O resultado não está certo."
+    except NameError as _e:
+        _res["pass"] = False
+        _res["msg"] = "Está faltando criar: " + str(_e).split("'")[1] if "'" in str(_e) else str(_e)
+    except Exception as _e:
+        _res["pass"] = False
+        _res["msg"] = f"{type(_e).__name__}: {_e}"
+json.dumps(_res)
+`;
+async function runPy(m, code, tests, onStatus){
+  const py = await getPy();
+  if(m.pkgs && m.pkgs.length){ onStatus && onStatus("Carregando " + m.pkgs.join(", ") + " (só na primeira vez)…"); await py.loadPackage(m.pkgs); }
+  py.globals.set("USER_CODE", code);
+  py.globals.set("TEST_CODE", m.test || "");
+  py.globals.set("RUN_TESTS", !!tests);
+  const out = await py.runPythonAsync(PY_HARNESS);
+  return JSON.parse(out);
+}
+
+/* ---- Regras (Databricks, DAX, M) ---- */
+function stripComments(code, t){
+  let c = code.replace(/\/\*[\s\S]*?\*\//g, " ");
+  if(t === "dax" || t === "m") c = c.replace(/\/\/[^\n]*/g, " ");
+  if(t === "dax" || t === "dbx") c = c.replace(/--[^\n]*/g, " ");
+  if(t === "dbx") c = c.replace(/(^|\n)\s*#[^\n]*/g, "\n");
+  return c.replace(/\s+/g, " ").trim();
+}
+function checkRules(m, code){
+  const c = stripComments(code, m.t);
+  const fails = [];
+  if(!c) return ["Escreva sua solução no editor."];
+  if(/___/.test(c)) fails.push("Ainda tem ___ no código. Troque pela sua fórmula.");
+  if(m.t === "m"){
+    const bad = c.match(/\b(table|text|list|date|number|record|joinKind|joinkind)\.[A-Za-z]/);
+    if(bad) fails.push(`M diferencia maiúsculas: “${bad[0]}…” deve começar com letra maiúscula (Table., Text., List., JoinKind.…).`);
+  }
+  (m.no || []).forEach(([re, msg]) => { if(re.test(c)) fails.push(msg); });
+  (m.r || []).forEach(([re, msg]) => { if(!re.test(c)) fails.push(msg); });
+  return fails;
+}
+
+/* ======================= UI ======================= */
+const app = document.getElementById("app");
+let view = {name:"home"};
+function el(tag, cls, txt){ const e = document.createElement(tag); if(cls) e.className = cls; if(txt != null) e.textContent = txt; return e; }
+function btn(cls, txt, fn){ const b = el("button", cls, txt); b.type = "button"; b.onclick = fn; return b; }
+function go(v){ view = v; rerender(); window.scrollTo(0, 0); }
+function rerender(){
+  const active = document.activeElement && document.activeElement.id === "editor";
+  if(view.name === "mission" && active) return; // não atrapalhar quem está digitando
+  if(view.name === "home") home(); else if(view.name === "track") trackView(view.t); else mission(view.id);
+}
+function toast(msg){ const t = el("div", "toast", msg); document.body.appendChild(t); setTimeout(() => t.remove(), 2200); }
+function stateOf(id){ return (S.ms[id] || {}).st || null; }
+function unlocked(m){ const list = missionsOf(m.t); const i = list.indexOf(m); return i === 0 || !!stateOf(list[i-1].id); }
+
+/* ---------- Início ---------- */
+function home(){
+  document.documentElement.style.setProperty("--acc", "#7c8cff");
+  app.innerHTML = "";
+  const c = el("div", "card hero");
+  const r = el("div", "row");
+  const l = el("div", "grow");
+  l.appendChild(el("h1", null, "Missões de Dados"));
+  l.appendChild(el("div", "mut", "Nível " + level() + " · " + rank()));
+  r.appendChild(l);
+  r.appendChild(el("span", "pill", "🔥 " + liveStreak() + (liveStreak() === 1 ? " dia" : " dias")));
+  c.appendChild(r);
+  const x = xp() % 100;
+  const bar = el("div", "bar"); const i = el("i"); i.style.width = x + "%"; bar.appendChild(i); c.appendChild(bar);
+  const s = el("div", "small mut", x + "/100 XP para o nível " + (level()+1) + " · total " + xp() + " XP"); c.appendChild(s);
+  const sy = el("div", "small mut", syncLabel()); sy.id = "sync"; sy.style.marginTop = "6px"; c.appendChild(sy);
+  app.appendChild(c);
+
+  const tot = Object.values(S.ms).filter(m => m.st).length;
+  if(!tot){
+    const intro = el("div", "card note");
+    intro.appendChild(el("b", null, "Como funciona"));
+    intro.appendChild(el("p", null, "Cada missão é uma tarefa de trabalho. Você escreve o código e toca em Verificar. SQL e Python rodam de verdade aqui no celular; DAX, M e Databricks são conferidos por regras" + (sampleFn ? " (e a IA ajuda se você fizer de outro jeito)." : ".")));
+    app.appendChild(intro);
+  }
+
+  app.appendChild(el("h2", null, "Trilhas"));
+  TRACKS.forEach(t => {
+    const list = missionsOf(t.id);
+    const done = list.filter(m => stateOf(m.id)).length;
+    const next = list.find(m => !stateOf(m.id));
+    const b = el("button", "track");
+    b.type = "button";
+    b.style.setProperty("--c", t.c);
+    const top = el("div", "row");
+    const tl = el("div", "grow");
+    tl.appendChild(el("b", null, t.n));
+    tl.appendChild(el("div", "small mut", t.d));
+    top.appendChild(tl);
+    top.appendChild(el("span", "count", done + "/" + list.length));
+    b.appendChild(top);
+    const bb = el("div", "bar thin"); const ii = el("i"); ii.style.width = (100*done/list.length) + "%"; ii.style.background = t.c; bb.appendChild(ii); b.appendChild(bb);
+    b.appendChild(el("div", "small", next ? "Próxima: " + next.ti + " · " + LVL[next.l] : "✅ Trilha completa!"));
+    b.onclick = () => go({name:"track", t:t.id});
+    app.appendChild(b);
+  });
+  const ft = el("div", "center"); ft.style.marginTop = "22px";
+  if(!cloud.ref){
+    ft.appendChild(btn("link", "Levar progresso para outro aparelho", transferSheet));
+    ft.appendChild(el("br"));
+  }
+  ft.appendChild(btn("link", "Zerar progresso", confirmReset));
+  app.appendChild(ft);
+}
+function transferSheet(){
+  const m = el("div", "modal"); const c = el("div", "card sheet");
+  c.appendChild(el("h1", null, "Levar progresso"));
+  c.appendChild(el("p", "mut", "1) Neste aparelho, copie o código. 2) No outro aparelho, abra este jogo, toque aqui de novo, cole o código e toque em Juntar. O que já existe lá não se perde."));
+  const code = btoa(unescape(encodeURIComponent(JSON.stringify(S))));
+  const cp = btn("btn", "Copiar meu código", async () => {
+    try{ await navigator.clipboard.writeText(code); cp.textContent = "✅ Copiado!"; }
+    catch(e){ ta.value = code; ta.select(); cp.textContent = "Selecione e copie o texto abaixo"; }
+  });
+  c.appendChild(cp);
+  const ta = el("textarea", "editor"); ta.rows = 4; ta.placeholder = "Cole aqui o código do outro aparelho"; ta.style.marginTop = "12px"; ta.style.minHeight = "90px";
+  c.appendChild(ta);
+  const j = btn("btn sec", "Juntar progresso colado", () => {
+    try{
+      const other = JSON.parse(decodeURIComponent(escape(atob(ta.value.trim()))));
+      if(!other || !other.ms) throw 0;
+      S = merge(S, other); save(); m.remove(); go({name:"home"}); toast("Progresso juntado!");
+    }catch(e){ toast("Código inválido"); }
+  });
+  j.style.marginTop = "10px"; c.appendChild(j);
+  const n = btn("btn sec", "Fechar", () => m.remove()); n.style.marginTop = "10px"; c.appendChild(n);
+  m.appendChild(c); m.onclick = e => { if(e.target === m) m.remove(); };
+  document.body.appendChild(m);
+}
+function confirmReset(){
+  const m = el("div", "modal"); const c = el("div", "card sheet");
+  c.appendChild(el("h1", null, "Zerar progresso?"));
+  c.appendChild(el("p", "mut", "XP, sequência, missões concluídas e rascunhos voltam do zero, em todos os aparelhos."));
+  const y = btn("btn", "Sim, zerar", () => { S = blank(); save(); m.remove(); go({name:"home"}); }); y.style.background = "var(--bad)";
+  const n = btn("btn sec", "Cancelar", () => m.remove()); n.style.marginTop = "10px";
+  c.appendChild(y); c.appendChild(n); m.appendChild(c);
+  m.onclick = e => { if(e.target === m) m.remove(); };
+  document.body.appendChild(m);
+}
+
+/* ---------- Trilha ---------- */
+function trackView(tid){
+  const t = trackOf(tid);
+  document.documentElement.style.setProperty("--acc", t.c);
+  app.innerHTML = "";
+  const top = el("div", "top row");
+  top.appendChild(btn("x", "←", () => go({name:"home"})));
+  const h = el("div", "grow"); h.appendChild(el("h1", null, t.n)); h.appendChild(el("div", "small mut", t.d)); top.appendChild(h);
+  app.appendChild(top);
+  [1,2,3].forEach(lv => {
+    const list = missionsOf(tid).filter(m => m.l === lv);
+    if(!list.length) return;
+    app.appendChild(el("h2", null, LVL[lv]));
+    const box = el("div", "card list");
+    list.forEach(m => {
+      const st = stateOf(m.id), open = unlocked(m);
+      const row = el("button", "mrow" + (open ? "" : " locked"));
+      row.type = "button";
+      const n = missionsOf(tid).indexOf(m) + 1;
+      row.appendChild(el("span", "num", String(n)));
+      const tx = el("div", "grow"); tx.appendChild(el("div", "mt", m.ti));
+      const pts = (S.ms[m.id] || {}).pts;
+      tx.appendChild(el("div", "small mut", st === "solved" ? "Concluída · +" + pts + " XP" : st === "seen" ? "Solução vista" : open ? BASE[m.l] + " XP" : "Bloqueada"));
+      row.appendChild(tx);
+      row.appendChild(el("span", "ico", st === "solved" ? "✅" : st === "seen" ? "👁" : open ? "▶" : "🔒"));
+      row.onclick = () => open ? go({name:"mission", id:m.id}) : toast("Conclua a missão anterior primeiro");
+      box.appendChild(row);
+    });
+    app.appendChild(box);
+  });
+}
+
+/* ---------- Missão ---------- */
+let ses = {};   // estado da tela da missão (dicas, tentativas)
+function mission(id){
+  const m = byId[id], t = trackOf(m.t);
+  if(!ses[id]) ses[id] = {hints:0, tries:0, out:null, showSol:false, aiTxt:null};
+  const se = ses[id];
+  document.documentElement.style.setProperty("--acc", t.c);
+  app.innerHTML = "";
+  const list = missionsOf(m.t), n = list.indexOf(m) + 1;
+
+  const top = el("div", "top row");
+  top.appendChild(btn("x", "←", () => go({name:"track", t:m.t})));
+  const h = el("div", "grow");
+  h.appendChild(el("div", "small mut", t.n + " · Missão " + n + "/" + list.length + " · " + LVL[m.l]));
+  h.appendChild(el("h1", null, m.ti));
+  top.appendChild(h);
+  app.appendChild(top);
+
+  const task = el("div", "card");
+  task.appendChild(el("div", "lbl", "📋 Tarefa"));
+  task.appendChild(el("div", "task", m.tx));
+  app.appendChild(task);
+
+  // contexto
+  const ctx = el("details", "card");
+  ctx.appendChild(el("summary", null, "🗂 Dados e contexto"));
+  ctx.appendChild(el("pre", "ctx", m.ctx ? m.ctx + "\n\n" + t.ctx : t.ctx));
+  if(m.t === "sql"){
+    const vb = btn("btn sec small", "Ver dados das tabelas", async () => {
+      vb.disabled = true; vb.textContent = "Carregando…";
+      try{
+        for(const tb of ["contratos","medicoes","paineis"]){
+          const r = await runSQL("SELECT * FROM " + tb);
+          ctx.appendChild(el("div", "lbl", tb));
+          ctx.appendChild(table(r));
+        }
+        vb.remove();
+      }catch(e){ vb.disabled = false; vb.textContent = "Não carregou. Tentar de novo"; }
+    });
+    ctx.appendChild(vb);
+  }
+  app.appendChild(ctx);
+
+  if(m.t === "sql"){
+    const ex = el("details", "card");
+    ex.appendChild(el("summary", null, "🎯 Resultado esperado"));
+    const holder = el("div", "small mut", "Abra para ver o resultado que a tarefa pede.");
+    ex.appendChild(holder);
+    ex.addEventListener("toggle", async () => {
+      if(!ex.open || ex.dataset.done) return;
+      holder.textContent = "Calculando…";
+      try{ const r = await runSQL(m.sol); holder.replaceWith(table(r)); ex.dataset.done = 1;
+        if(m.ord){ ex.appendChild(el("div", "small mut", "A ordem das linhas conta nesta missão.")); } }
+      catch(e){ holder.textContent = "Não consegui carregar o SQL. Verifique a internet."; }
+    });
+    app.appendChild(ex);
+  }
+
+  // editor
+  const ed = el("div", "card edcard");
+  const ta = el("textarea", "editor");
+  ta.id = "editor";
+  ta.setAttribute("autocapitalize", "off"); ta.setAttribute("autocorrect", "off"); ta.setAttribute("autocomplete", "off");
+  ta.spellcheck = false;
+  ta.value = (S.dr[id] && S.dr[id].c != null) ? S.dr[id].c : (m.st || "");
+  ta.rows = Math.max(7, Math.min(18, ta.value.split("\n").length + 2));
+  let dt = null;
+  ta.addEventListener("input", () => { clearTimeout(dt); dt = setTimeout(() => { S.dr[id] = {c: ta.value, at: Date.now()}; save(); }, 600); });
+  ta.addEventListener("keydown", e => {
+    if(e.key === "Tab"){ e.preventDefault(); insert(ta, m.t === "py" || m.t === "m" ? "    " : "  "); }
+  });
+  ed.appendChild(ta);
+  const kb = el("div", "keys");
+  t.keys.forEach(k => {
+    const b = el("button", "key", k === "    " ? "⇥" : k.trim() || k);
+    b.type = "button";
+    b.addEventListener("pointerdown", e => { e.preventDefault(); insert(ta, k); });
+    kb.appendChild(b);
+  });
+  ed.appendChild(kb);
+  const tools = el("div", "row tools");
+  tools.appendChild(btn("link small", "↺ Recomeçar", () => { ta.value = m.st || ""; S.dr[id] = {c: ta.value, at: Date.now()}; save(); }));
+  ed.appendChild(tools);
+  app.appendChild(ed);
+
+  // ações
+  const acts = el("div", "acts");
+  const runnable = m.t === "sql" || m.t === "py";
+  const out = el("div", "outwrap");
+  if(runnable){
+    acts.appendChild(btn("btn sec", "▶ Executar", () => doRun(m, ta.value, out, false)));
+  }
+  acts.appendChild(btn("btn", "✓ Verificar", () => doCheck(m, ta.value, out)));
+  app.appendChild(acts);
+
+  const help = el("div", "row help");
+  const hb = btn("btn ghost", se.hints < m.h.length ? "💡 Dica (" + (m.h.length - se.hints) + ")" : "💡 Sem mais dicas", () => {
+    if(se.hints < m.h.length){ se.hints++; rerenderMission(); }
+  });
+  hb.disabled = se.hints >= m.h.length;
+  help.appendChild(hb);
+  help.appendChild(btn("btn ghost", "👁 Solução", () => askSolution(m)));
+  if(sampleFn) help.appendChild(btn("btn ghost", "🤖 IA", () => doAI(m, ta.value, out)));
+  app.appendChild(help);
+
+  if(se.hints){
+    const hc = el("div", "card hint");
+    m.h.slice(0, se.hints).forEach((x, k) => hc.appendChild(el("div", null, "💡 " + x)));
+    app.appendChild(hc);
+  }
+  app.appendChild(out);
+  if(se.out) renderOut(out, se.out, m);
+  if(se.showSol) app.appendChild(solutionCard(m, false));
+}
+function rerenderMission(){ const y = window.scrollY; mission(view.id); window.scrollTo(0, y); }
+function insert(ta, txt){
+  const s = ta.selectionStart, e = ta.selectionEnd;
+  ta.setRangeText(txt, s, e, "end");
+  ta.focus();
+  ta.dispatchEvent(new Event("input"));
+}
+function table(r){
+  const w = el("div", "tblw");
+  if(!r.cols.length){ w.appendChild(el("div", "small mut", "(sem resultado)")); return w; }
+  const tb = el("table");
+  const tr = el("tr"); r.cols.forEach(c => tr.appendChild(el("th", null, c))); tb.appendChild(tr);
+  r.rows.slice(0, 60).forEach(row => { const x = el("tr"); row.forEach(v => { const td = el("td", v === null ? "null" : null, v === null ? "NULL" : (typeof v === "number" && !Number.isInteger(v) ? String(Math.round(v*100)/100) : String(v))); x.appendChild(td); }); tb.appendChild(x); });
+  w.appendChild(tb);
+  if(r.rows.length > 60) w.appendChild(el("div", "small mut", "… mostrando 60 de " + r.rows.length + " linhas"));
+  return w;
+}
+function busy(out, msg){ out.innerHTML = ""; const c = el("div", "card"); c.appendChild(el("div", "mut", "⏳ " + msg)); out.appendChild(c); return c; }
+
+async function doRun(m, code, out, andCheck){
+  const se = ses[m.id];
+  if(m.t === "sql"){
+    busy(out, "Rodando a consulta…");
+    try{ const r = await runSQL(code); se.out = {kind:"sqlres", r}; }
+    catch(e){ se.out = {kind:"err", msg: sqlErr(e)}; }
+  } else {
+    const loaded = !!pyP;
+    const b = busy(out, loaded ? "Rodando…" : "Carregando o Python (~10 MB, só na primeira vez)…");
+    try{ const r = await runPy(m, code, false, s => b.firstChild.textContent = "⏳ " + s); se.out = {kind:"pyres", r}; }
+    catch(e){ se.out = {kind:"err", msg: "Não consegui carregar o Python. Verifique a internet e tente de novo."}; }
+  }
+  renderOut(out, se.out, m);
+}
+function sqlErr(e){
+  const msg = (e && e.message) || String(e);
+  if(/load|t$/.test(msg) && !/syntax|no such/i.test(msg)) return "Não consegui carregar o SQL. Verifique a internet e tente de novo.";
+  return "Erro do banco: " + msg
+    .replace(/near "(.*?)": syntax error/, "erro de sintaxe perto de “$1”")
+    .replace(/no such column: (.*)/, "a coluna $1 não existe")
+    .replace(/no such table: (.*)/, "a tabela $1 não existe")
+    .replace(/misuse of aggregate/, "uso errado de função de agregação")
+    .replace(/incomplete input/, "a consulta está incompleta");
+}
+
+async function doCheck(m, code, out){
+  const se = ses[m.id];
+  se.tries++;
+  if(m.t === "sql"){
+    busy(out, "Conferindo…");
+    try{
+      const got = await runSQL(code);
+      const exp = await runSQL(m.sol);
+      const diff = compareSQL(got, exp, m);
+      se.out = diff ? {kind:"fail", msgs:[diff], r:got} : {kind:"ok"};
+    }catch(e){ se.out = {kind:"err", msg: sqlErr(e)}; }
+  } else if(m.t === "py"){
+    const b = busy(out, pyP ? "Conferindo…" : "Carregando o Python (~10 MB, só na primeira vez)…");
+    try{
+      const r = await runPy(m, code, true, s => b.firstChild.textContent = "⏳ " + s);
+      if(!r.ok) se.out = {kind:"pyres", r};
+      else se.out = r.pass ? {kind:"ok", py:r} : {kind:"fail", msgs:[r.msg], py:r};
+    }catch(e){ se.out = {kind:"err", msg:"Não consegui carregar o Python. Verifique a internet e tente de novo."}; }
+  } else {
+    const fails = checkRules(m, code);
+    se.out = fails.length ? {kind:"fail", msgs: fails.slice(0, 2), more: fails.length - 2} : {kind:"ok"};
+  }
+  if(se.out.kind === "ok") complete(m, "solved");
+  renderOut(out, se.out, m);
+  if(se.out.kind === "ok") setTimeout(() => out.scrollIntoView({behavior:"smooth", block:"start"}), 50);
+}
+function complete(m, how){
+  const prev = S.ms[m.id] || {};
+  const se = ses[m.id] || {hints:0};
+  let pts;
+  if(how === "seen"){ pts = prev.pts || 0; S.ms[m.id] = Object.assign({}, prev, {st: prev.st === "solved" ? "solved" : "seen", sol:true, pts, at:Date.now()}); }
+  else{
+    const base = BASE[m.l];
+    pts = prev.sol ? Math.round(base * .25) : Math.max(Math.round(base * .25), base - se.hints * Math.round(base * .25));
+    pts = Math.max(prev.pts || 0, pts);
+    se.gain = pts - (prev.pts || 0);
+    S.ms[m.id] = Object.assign({}, prev, {st:"solved", pts, at:Date.now()});
+  }
+  touchDay(); save();
+}
+function renderOut(out, o, m){
+  out.innerHTML = "";
+  const se = ses[m.id];
+  if(o.kind === "sqlres"){
+    const c = el("div", "card"); c.appendChild(el("div", "lbl", "Resultado da sua consulta (" + o.r.rows.length + " linhas)")); c.appendChild(table(o.r)); out.appendChild(c);
+  } else if(o.kind === "pyres"){
+    const r = o.r, c = el("div", "card" + (r.ok ? "" : " bad"));
+    c.appendChild(el("div", "lbl", r.ok ? "Saída do print" : "Erro"));
+    if(r.out) c.appendChild(el("pre", "out", r.out));
+    else if(r.ok) c.appendChild(el("div", "small mut", "(nada foi impresso — use print() para ver valores)"));
+    if(!r.ok){ c.appendChild(el("pre", "out errtx", r.err)); c.appendChild(el("div", "small mut", pyHint(r.err))); }
+    out.appendChild(c);
+  } else if(o.kind === "err"){
+    const c = el("div", "card bad"); c.appendChild(el("div", "lbl", "❌ Erro")); c.appendChild(el("div", null, o.msg)); out.appendChild(c);
+  } else if(o.kind === "fail"){
+    const c = el("div", "card bad");
+    c.appendChild(el("h3", null, "Ainda não 😅"));
+    o.msgs.forEach(x => c.appendChild(el("div", "fx", "✗ " + x)));
+    if(o.more > 0) c.appendChild(el("div", "small mut", "+ " + o.more + " ponto(s) para ajustar depois desses."));
+    if(o.r){ c.appendChild(el("div", "lbl", "O que sua consulta trouxe")); c.appendChild(table(o.r)); }
+    if(o.py && o.py.out){ c.appendChild(el("div", "lbl", "Saída do print")); c.appendChild(el("pre", "out", o.py.out)); }
+    if(sampleFn && (m.t === "dax" || m.t === "m" || m.t === "dbx"))
+      c.appendChild(el("div", "small mut", "Acha que fez certo de outro jeito? Toque em 🤖 IA para uma correção mais flexível."));
+    out.appendChild(c);
+  } else if(o.kind === "ok"){
+    const c = el("div", "card good");
+    const g = se.gain;
+    c.appendChild(el("h3", null, "✅ Missão cumprida!" + (g ? " +" + g + " XP" : "")));
+    if(o.ai) c.appendChild(el("div", "fx", "🤖 " + o.ai));
+    c.appendChild(el("div", "lbl", "Por que funciona"));
+    c.appendChild(el("div", null, m.e));
+    c.appendChild(el("div", "lbl", "Uma solução de referência"));
+    c.appendChild(el("pre", "sol", m.sol));
+    if(o.py && o.py.out){ c.appendChild(el("div", "lbl", "Sua saída")); c.appendChild(el("pre", "out", o.py.out)); }
+    const list = missionsOf(m.t), nx = list[list.indexOf(m) + 1];
+    c.appendChild(btn("btn", nx ? "Próxima missão →" : "Voltar à trilha", () => go(nx ? {name:"mission", id:nx.id} : {name:"track", t:m.t})));
+    out.appendChild(c);
+  } else if(o.kind === "ai"){
+    const c = el("div", "card"); c.appendChild(el("div", "lbl", "🤖 Comentário da IA")); c.appendChild(el("div", null, o.txt)); out.appendChild(c);
+  }
+}
+function pyHint(err){
+  if(/IndentationError/.test(err)) return "Dica: confira o recuo (4 espaços) depois de linhas que terminam com “:”.";
+  if(/SyntaxError/.test(err)) return "Dica: confira parênteses, aspas e os dois-pontos “:”.";
+  if(/NameError/.test(err)) return "Dica: algum nome não existe — veja se digitou igual (maiúsculas contam).";
+  if(/TypeError/.test(err)) return "Dica: você misturou tipos (ex.: texto + número). Converta com str() ou float().";
+  if(/KeyError/.test(err)) return "Dica: a chave/coluna não existe com esse nome.";
+  return "";
+}
+function askSolution(m){
+  const se = ses[m.id];
+  if(se.showSol) return;
+  const md = el("div", "modal"); const c = el("div", "card sheet");
+  c.appendChild(el("h1", null, "Ver a solução?"));
+  c.appendChild(el("p", "mut", "A missão conta como vista e libera a próxima, mas você não ganha XP agora. Se resolver depois, ganha só 25% do XP."));
+  c.appendChild(btn("btn", "Mostrar solução", () => { md.remove(); se.showSol = true; complete(m, "seen"); rerenderMission(); }));
+  const n = btn("btn sec", "Vou tentar mais", () => md.remove()); n.style.marginTop = "10px"; c.appendChild(n);
+  md.appendChild(c); md.onclick = e => { if(e.target === md) md.remove(); };
+  document.body.appendChild(md);
+}
+function solutionCard(m){
+  const c = el("div", "card");
+  c.appendChild(el("div", "lbl", "👁 Solução"));
+  c.appendChild(el("pre", "sol", m.sol));
+  c.appendChild(el("div", "lbl", "Por que funciona"));
+  c.appendChild(el("div", null, m.e));
+  return c;
+}
+const LANG = {sql:"SQL (SQLite)", py:"Python", dbx:"Databricks (Spark SQL / PySpark)", dax:"DAX (Power BI)", m:"M (Power Query)"};
+async function doAI(m, code, out){
+  const se = ses[m.id];
+  if(!code.trim()){ toast("Escreva alguma coisa primeiro"); return; }
+  busy(out, "A IA está lendo seu código…");
+  const t = trackOf(m.t);
+  const grading = (m.t === "dax" || m.t === "m" || m.t === "dbx");
+  const prompt =
+`Você é um professor paciente de ${LANG[m.t]}. Fale em português do Brasil, com palavras simples.
+TAREFA DO ALUNO:
+${m.tx}
+
+CONTEXTO:
+${m.ctx ? m.ctx + "\n" : ""}${t.ctx}
+
+UMA SOLUÇÃO DE REFERÊNCIA (pode haver outras corretas):
+${m.sol}
+
+CÓDIGO DO ALUNO:
+${code}
+
+${grading
+ ? "Diga se o código do aluno resolve a tarefa de forma correta (aceite outras soluções válidas, ignore diferenças de espaço e maiúsculas onde a linguagem não diferencia)."
+ : "O código do aluno ainda não passou no teste. Explique o que está errado."}
+Não entregue a solução completa: aponte o problema e dê uma pista.
+Responda SOMENTE com JSON: {"correto": true ou false, "feedback": "no máximo 3 frases curtas"}`;
+  try{
+    const res = await sampleFn.json(prompt, {modelTier:"default"});
+    const ok = grading && res && res.correto === true;
+    if(ok){ complete(m, "solved"); se.out = {kind:"ok", ai: res.feedback || "Solução correta."}; }
+    else se.out = {kind:"ai", txt: (res && res.feedback) || "Não consegui avaliar agora."};
+  }catch(e){
+    if(e && e.code === "not_granted"){ sampleFn = null; se.out = {kind:"err", msg:"A ajuda da IA não está liberada nesta página."}; }
+    else if(e && e.code === "rate_limited") se.out = {kind:"err", msg:"Muitos pedidos seguidos. Espere um pouco e tente de novo."};
+    else se.out = {kind:"err", msg:"A IA não respondeu agora. Tente de novo mais tarde."};
+  }
+  renderOut(out, se.out, m);
+  if(se.out.kind === "ok") rerenderMissionKeepOut(m);
+}
+function rerenderMissionKeepOut(m){ const y = window.scrollY; mission(m.id); window.scrollTo(0, y); }
+
+/* ======================= INÍCIO ======================= */
+home();
+cloudInit();
+aiInit();
+// fora do Claude (ex.: GitHub Pages): funciona offline e pode ser instalado como app
+try{
+  if("serviceWorker" in navigator && location.protocol === "https:" && !/claude\.(ai|site)|claudeusercontent/.test(location.hostname))
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+}catch(e){}
+// pré-carrega o SQL em segundo plano (é leve)
+setTimeout(() => { getSQL().catch(() => {}); }, 800);
+
+</script>
+</body>
+</html>
