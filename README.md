@@ -1,6 +1,23 @@
-# Missões de Dados
+<p align="center">
+  <img src="icon-192.png" alt="Ícone do jogo Missões de Dados" width="96">
+</p>
 
-Jogo para celular para praticar **SQL, Python, Databricks, DAX e M (Power Query)** escrevendo código de verdade, como numa tarefa do trabalho, do básico ao avançado.
+<h1 align="center">Missões de Dados</h1>
+
+<p align="center">
+  Jogo para celular para praticar <b>SQL, Python, Databricks, DAX e M (Power Query)</b><br>
+  escrevendo código de verdade, como numa tarefa do trabalho, do básico ao avançado.
+</p>
+
+<p align="center">
+  <a href="https://diegoframos81.github.io/missoes-de-dados/"><b>🎮 JOGAR AGORA</b></a>
+</p>
+
+<p align="center">
+  <a href="https://diegoframos81.github.io/missoes-de-dados/">diegoframos81.github.io/missoes-de-dados</a>
+</p>
+
+---
 
 ## Como funciona
 
